@@ -1,4 +1,4 @@
-ame: CI
+name: CI
 
 on:
   push:
@@ -14,6 +14,8 @@ concurrency:
 jobs:
   lint-and-typecheck:
     runs-on: ubuntu-latest
+    env:
+      SKIP_ENV_VALIDATION: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

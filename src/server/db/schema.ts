@@ -31,8 +31,8 @@ export const posts = createTable(
 	],
 );
 
-const rolesValues = ['USER', 'ADMIN', 'DEV'] as const;
-export const roles = pgEnum('user_role', rolesValues);
+const rolesValues = ["USER", "ADMIN", "DEV"] as const;
+export const roles = pgEnum("user_role", rolesValues);
 export type UserRole = (typeof rolesValues)[number];
 
 export const users = createTable("user", (d) => ({
@@ -44,13 +44,11 @@ export const users = createTable("user", (d) => ({
 	name: d.varchar({ length: 255 }),
 	role: roles("role").default("USER").notNull(),
 	passwordHash: d.char({ length: 60 }),
-	email: d.varchar({ length: 255 }).notNull(),
-	emailVerified: d
-		.timestamp({
-			mode: "date",
-			withTimezone: true,
-		})
-		.default(sql`CURRENT_TIMESTAMP`),
+	email: d.varchar({ length: 255 }).notNull().unique(),
+	emailVerified: d.timestamp({
+		mode: "date",
+		withTimezone: true,
+	}),
 	image: d.varchar({ length: 255 }),
 }));
 

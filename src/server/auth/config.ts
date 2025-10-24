@@ -1,19 +1,19 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import bcrypt from "bcryptjs";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import DiscordProvider from "next-auth/providers/discord";
-import bcrypt from "bcryptjs";
 
-import { db } from "~/server/db";
 import { eq } from "drizzle-orm";
+import { env } from "~/env";
+import { db } from "~/server/db";
 import {
+	type UserRole,
 	accounts,
 	sessions,
 	users,
 	verificationTokens,
-	type UserRole,
 } from "~/server/db/schema";
-import { env } from "~/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -62,7 +62,6 @@ export const authConfig = {
 				const password = credentials.password as string;
 
 				if (!email || !password) return null;
-
 
 				// find user by email
 				const [user] = await db

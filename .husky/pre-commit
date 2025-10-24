@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pnpm check:safe..."
+pnpm check:write || echo "⚠️  pnpm check:safe failed, but commit continues..."

@@ -1,14 +1,19 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import DiscordProvider from "next-auth/providers/discord";
+import bcrypt from "bcryptjs";
 
 import { db } from "~/server/db";
+import { eq } from "drizzle-orm";
 import {
 	accounts,
 	sessions,
 	users,
 	verificationTokens,
+	type UserRole,
 } from "~/server/db/schema";
+import { env } from "~/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -20,8 +25,8 @@ declare module "next-auth" {
 	interface Session extends DefaultSession {
 		user: {
 			id: string;
+			role: UserRole;
 			// ...other properties
-			// role: UserRole;
 		} & DefaultSession["user"];
 	}
 
@@ -38,7 +43,51 @@ declare module "next-auth" {
  */
 export const authConfig = {
 	providers: [
-		DiscordProvider,
+		// Discord OAuth
+		DiscordProvider({
+			clientId: env.AUTH_DISCORD_ID,
+			clientSecret: env.AUTH_DISCORD_SECRET,
+		}),
+		// Credentials provider (email + password)
+		Credentials({
+			id: "credentials",
+			name: "Credentials",
+			credentials: {
+				email: { label: "Email", type: "text" },
+				password: { label: "Password", type: "password" },
+			},
+			authorize: async (credentials) => {
+				if (!credentials) return null;
+				const email = credentials.email as string;
+				const password = credentials.password as string;
+
+				if (!email || !password) return null;
+
+
+				// find user by email
+				const [user] = await db
+					.select()
+					.from(users)
+					.where(eq(users.email, email));
+
+				if (!user || !user.passwordHash) return null;
+
+				const isValid = await bcrypt.compare(
+					password,
+					user.passwordHash as string,
+				);
+
+				if (!isValid) return null;
+
+				return {
+					id: user.id,
+					name: user.name,
+					role: user.role,
+					email: user.email,
+					image: user.image,
+				};
+			},
+		}),
 		/**
 		 * ...add more providers here.
 		 *

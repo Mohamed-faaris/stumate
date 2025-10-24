@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -31,6 +31,10 @@ export const posts = createTable(
 	],
 );
 
+const rolesValues = ['USER', 'ADMIN', 'DEV'] as const;
+export const roles = pgEnum('user_role', rolesValues);
+export type UserRole = (typeof rolesValues)[number];
+
 export const users = createTable("user", (d) => ({
 	id: d
 		.varchar({ length: 255 })
@@ -38,6 +42,8 @@ export const users = createTable("user", (d) => ({
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	name: d.varchar({ length: 255 }),
+	role: roles("role").default("USER").notNull(),
+	passwordHash: d.char({ length: 60 }),
 	email: d.varchar({ length: 255 }).notNull(),
 	emailVerified: d
 		.timestamp({

@@ -3,38 +3,38 @@ import { createTable } from "./base";
 import { formSections } from "./form";
 
 export const questionTypeValues = [
-    "SHORT_TEXT",
-    "LONG_TEXT",
-    "MULTIPLE_CHOICE",
-    "CHECKBOXES",
-    "DROPDOWN",
-    "LINEAR_SCALE",
-    "DATE",
-    "TIME",
-    "DATE_TIME",
-    "URL",
-    "CONTENT_BLOCK",
-    "RADIO",
+	"SHORT_TEXT",
+	"LONG_TEXT",
+	"MULTIPLE_CHOICE",
+	"CHECKBOXES",
+	"DROPDOWN",
+	"LINEAR_SCALE",
+	"DATE",
+	"TIME",
+	"DATE_TIME",
+	"URL",
+	"CONTENT_BLOCK",
+	"RADIO",
 ] as const;
 export const questionTypeEnum = pgEnum("question_type", questionTypeValues);
 export type QuestionType = (typeof questionTypeValues)[number];
 
 export const formQuestions = createTable(
-    "form_question",
-    (d) => ({
-        id: d.uuid().notNull().primaryKey().defaultRandom(),
-        sectionId: d
-            .uuid()
-            .notNull()
-            .references(() => formSections.id),
-        questionText: d.text().notNull(),
-        questionDescription: d.text(),
-        questionType: questionTypeEnum("questionType").notNull(),
-        required: d.boolean().notNull().default(false),
-        config: d.jsonb().notNull(),
-        order: d.integer().notNull(),
-    }),
-    (t) => [index("form_question_section_id_idx").on(t.sectionId)],
+	"form_question",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		sectionId: d
+			.uuid()
+			.notNull()
+			.references(() => formSections.id),
+		questionText: d.text().notNull(),
+		questionDescription: d.text(),
+		questionType: questionTypeEnum("questionType").notNull(),
+		required: d.boolean().notNull().default(false),
+		config: d.jsonb().notNull(),
+		order: d.integer().notNull(),
+	}),
+	(t) => [index("form_question_section_id_idx").on(t.sectionId)],
 );
 
 /*

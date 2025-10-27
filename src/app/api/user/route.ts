@@ -3,13 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
 import { env } from "~/env";
 import { insertUser } from "~/server/db/queries";
-
-const PostBodySchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	email: z.string().email("Invalid email address"),
-	password: z.string().min(6, "Password must be at least 6 characters"),
-	image: z.string().url("Invalid image URL").optional(),
-});
+import { PostBodySchema } from "~/types/user";
 
 export type UserPostResponse = ReturnType<typeof POST>;
 

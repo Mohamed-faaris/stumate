@@ -1,7 +1,8 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
-import { required } from "zod/v4-mini";
+import { size } from "zod/v4";
+
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -20,9 +21,11 @@ export const forms = createTable("form", (d) => ({
 		.uuid()
 		.notNull()
 		.references(() => users.id),
-	createdAt: d.timestamp().defaultNow(),
-	updatedAt: d.timestamp().defaultNow(),
-}));
+	createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+}),
+	t => [index("form_updated_at_idx").on(t.updatedAt)]
+);
 
 export const formSections = createTable("form_section", (d) => ({
 	id: d.uuid().notNull().primaryKey().defaultRandom(),
@@ -34,7 +37,7 @@ export const formSections = createTable("form_section", (d) => ({
 	description: d.text().notNull(),
 	config: d.jsonb().notNull(),
 	order: d.integer().notNull(),
-}));
+}), (t) => [index("form_section_form_id_idx").on(t.formId)]);
 
 export const formQuestions = createTable("form_question", (d) => ({
 	id: d.uuid().notNull().primaryKey().defaultRandom(),
@@ -47,7 +50,7 @@ export const formQuestions = createTable("form_question", (d) => ({
 	required: d.boolean().notNull().default(false),
 	config: d.jsonb().notNull(),
 	order: d.integer().notNull(),
-}));
+}), (t) => [index("form_question_section_id_idx").on(t.sectionId)]);
 
 export const formResponsesLog = createTable("form_response_log", (d) => ({
 	id: d.uuid().notNull().primaryKey().defaultRandom(),
@@ -55,10 +58,10 @@ export const formResponsesLog = createTable("form_response_log", (d) => ({
 		.uuid()
 		.notNull()
 		.references(() => forms.id),
-	submittedAt: d.timestamp().defaultNow(),
-	updatedAt: d.timestamp().defaultNow(),
+	submittedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 	responderId: d.uuid().references(() => users.id),
-}));
+}), (t) => [index("form_response_log_form_id_idx").on(t.formId),]);
 
 export const formResponses = createTable("form_response", (d) => ({
 	responseLogId: d
@@ -84,7 +87,15 @@ export const users = createTable("user", (d) => ({
 		withTimezone: true,
 	}),
 	image: d.varchar({ length: 255 }),
-}));
+}), (t) => [
+	index("user_email_idx").on(t.email),
+	index("user_name_idx").on(t.name),
+]
+);
+
+export const genderValues = ["MALE", "FEMALE", "OTHER"] as const;
+export const genderEnum = pgEnum("gender", genderValues);
+export type Gender = (typeof genderValues)[number];
 
 export const usersMetadata = createTable("user_metadata", (d) => ({
 	userId: d
@@ -92,7 +103,8 @@ export const usersMetadata = createTable("user_metadata", (d) => ({
 		.notNull()
 		.primaryKey()
 		.references(() => users.id),
-	birthOfdate: d.date(),
+	gender: genderEnum("user_gender").notNull(),
+	birthOfDate: d.date(),
 	phoneNumber: d.varchar({ length: 20 }),
 	address: d.text(),
 	defaultLanguage: d.varchar({ length: 10 }).default("en"),
@@ -105,6 +117,43 @@ export const usersMetadata = createTable("user_metadata", (d) => ({
 export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
 }));
+
+export const groups = createTable("group", (d) => ({
+	id: d.uuid().notNull().primaryKey().defaultRandom(),
+	name: d.varchar({ length: 255 }).notNull(),
+	description: d.text(),
+	createdBy: d
+		.uuid()
+		.notNull()
+		.references(() => users.id),
+	size: d.integer().notNull().default(0),
+	createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+}), (t) => [index("group_name_idx").on(t.name),]);
+
+export const groupRolesValues = ["MEMBER", "MODERATOR", "ADMIN"] as const;
+export const groupRoles = pgEnum("group_role", groupRolesValues);
+export type GroupRole = (typeof groupRolesValues)[number];
+
+export const groupsMembers = createTable("group_member", (d) => ({
+	groupId: d
+		.uuid()
+		.notNull()
+		.references(() => groups.id),
+	userId: d
+		.uuid()
+		.notNull()
+		.references(() => users.id),
+	role: groupRoles("role").default("MEMBER").notNull(),
+	joinedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+}), (t) => [primaryKey({ columns: [t.groupId, t.userId] }),
+index("group_member_user_id_idx").on(t.userId),
+index("group_member_group_id_idx").on(t.groupId),
+]
+
+
+);
 
 export const accounts = createTable(
 	"account",

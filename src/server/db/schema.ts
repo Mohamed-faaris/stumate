@@ -3,7 +3,6 @@ import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 import { size } from "zod/v4";
 
-
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.
@@ -12,56 +11,70 @@ import { size } from "zod/v4";
  */
 export const createTable = pgTableCreator((name) => `stumate_${name}`);
 
-export const forms = createTable("form", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	title: d.varchar({ length: 255 }).notNull(),
-	description: d.text().notNull(),
-	config: d.jsonb().notNull(),
-	createdBy: d
-		.uuid()
-		.notNull()
-		.references(() => users.id),
-	createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-}),
-	t => [index("form_updated_at_idx").on(t.updatedAt)]
+export const forms = createTable(
+	"form",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		title: d.varchar({ length: 255 }).notNull(),
+		description: d.text().notNull(),
+		config: d.jsonb().notNull(),
+		createdBy: d
+			.uuid()
+			.notNull()
+			.references(() => users.id),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	}),
+	(t) => [index("form_updated_at_idx").on(t.updatedAt)],
 );
 
-export const formSections = createTable("form_section", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	formId: d
-		.uuid()
-		.notNull()
-		.references(() => forms.id),
-	title: d.varchar({ length: 255 }).notNull(),
-	description: d.text().notNull(),
-	config: d.jsonb().notNull(),
-	order: d.integer().notNull(),
-}), (t) => [index("form_section_form_id_idx").on(t.formId)]);
+export const formSections = createTable(
+	"form_section",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		formId: d
+			.uuid()
+			.notNull()
+			.references(() => forms.id),
+		title: d.varchar({ length: 255 }).notNull(),
+		description: d.text().notNull(),
+		config: d.jsonb().notNull(),
+		order: d.integer().notNull(),
+	}),
+	(t) => [index("form_section_form_id_idx").on(t.formId)],
+);
 
-export const formQuestions = createTable("form_question", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	sectionId: d
-		.uuid()
-		.notNull()
-		.references(() => formSections.id),
-	questionText: d.text().notNull(),
-	questionType: d.varchar({ length: 100 }).notNull(),
-	required: d.boolean().notNull().default(false),
-	config: d.jsonb().notNull(),
-	order: d.integer().notNull(),
-}), (t) => [index("form_question_section_id_idx").on(t.sectionId)]);
+export const formQuestions = createTable(
+	"form_question",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		sectionId: d
+			.uuid()
+			.notNull()
+			.references(() => formSections.id),
+		questionText: d.text().notNull(),
+		questionType: d.varchar({ length: 100 }).notNull(),
+		required: d.boolean().notNull().default(false),
+		config: d.jsonb().notNull(),
+		order: d.integer().notNull(),
+	}),
+	(t) => [index("form_question_section_id_idx").on(t.sectionId)],
+);
 
-export const formResponsesLog = createTable("form_response_log", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	formId: d
-		.uuid()
-		.notNull()
-		.references(() => forms.id),
-	submittedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-	responderId: d.uuid().references(() => users.id),
-}), (t) => [index("form_response_log_form_id_idx").on(t.formId),]);
+export const formResponsesLog = createTable(
+	"form_response_log",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		formId: d
+			.uuid()
+			.notNull()
+			.references(() => forms.id),
+		submittedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+		responderId: d.uuid().references(() => users.id),
+	}),
+	(t) => [index("form_response_log_form_id_idx").on(t.formId)],
+);
 
 export const formResponses = createTable("form_response", (d) => ({
 	responseLogId: d
@@ -76,21 +89,24 @@ const rolesValues = ["USER", "ADMIN", "DEV"] as const;
 export const roles = pgEnum("user_role", rolesValues);
 export type UserRole = (typeof rolesValues)[number];
 
-export const users = createTable("user", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	name: d.varchar({ length: 255 }),
-	role: roles("role").default("USER").notNull(),
-	passwordHash: d.char({ length: 60 }),
-	email: d.varchar({ length: 255 }).notNull().unique(),
-	emailVerified: d.timestamp({
-		mode: "date",
-		withTimezone: true,
+export const users = createTable(
+	"user",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		name: d.varchar({ length: 255 }),
+		role: roles("role").default("USER").notNull(),
+		passwordHash: d.char({ length: 60 }),
+		email: d.varchar({ length: 255 }).notNull().unique(),
+		emailVerified: d.timestamp({
+			mode: "date",
+			withTimezone: true,
+		}),
+		image: d.varchar({ length: 255 }),
 	}),
-	image: d.varchar({ length: 255 }),
-}), (t) => [
-	index("user_email_idx").on(t.email),
-	index("user_name_idx").on(t.name),
-]
+	(t) => [
+		index("user_email_idx").on(t.email),
+		index("user_name_idx").on(t.name),
+	],
 );
 
 export const genderValues = ["MALE", "FEMALE", "OTHER"] as const;
@@ -118,41 +134,47 @@ export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
 }));
 
-export const groups = createTable("group", (d) => ({
-	id: d.uuid().notNull().primaryKey().defaultRandom(),
-	name: d.varchar({ length: 255 }).notNull(),
-	description: d.text(),
-	createdBy: d
-		.uuid()
-		.notNull()
-		.references(() => users.id),
-	size: d.integer().notNull().default(0),
-	createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-}), (t) => [index("group_name_idx").on(t.name),]);
+export const groups = createTable(
+	"group",
+	(d) => ({
+		id: d.uuid().notNull().primaryKey().defaultRandom(),
+		name: d.varchar({ length: 255 }).notNull(),
+		description: d.text(),
+		createdBy: d
+			.uuid()
+			.notNull()
+			.references(() => users.id),
+		size: d.integer().notNull().default(0),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	}),
+	(t) => [index("group_name_idx").on(t.name)],
+);
 
 export const groupRolesValues = ["MEMBER", "MODERATOR", "ADMIN"] as const;
 export const groupRoles = pgEnum("group_role", groupRolesValues);
 export type GroupRole = (typeof groupRolesValues)[number];
 
-export const groupsMembers = createTable("group_member", (d) => ({
-	groupId: d
-		.uuid()
-		.notNull()
-		.references(() => groups.id),
-	userId: d
-		.uuid()
-		.notNull()
-		.references(() => users.id),
-	role: groupRoles("role").default("MEMBER").notNull(),
-	joinedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-	updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-}), (t) => [primaryKey({ columns: [t.groupId, t.userId] }),
-index("group_member_user_id_idx").on(t.userId),
-index("group_member_group_id_idx").on(t.groupId),
-]
-
-
+export const groupsMembers = createTable(
+	"group_member",
+	(d) => ({
+		groupId: d
+			.uuid()
+			.notNull()
+			.references(() => groups.id),
+		userId: d
+			.uuid()
+			.notNull()
+			.references(() => users.id),
+		role: groupRoles("role").default("MEMBER").notNull(),
+		joinedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
+	}),
+	(t) => [
+		primaryKey({ columns: [t.groupId, t.userId] }),
+		index("group_member_user_id_idx").on(t.userId),
+		index("group_member_group_id_idx").on(t.groupId),
+	],
 );
 
 export const accounts = createTable(

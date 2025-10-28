@@ -16,6 +16,7 @@ export const questionTypeValues = [
 	"CONTENT_BLOCK",
 	"RADIO",
 ] as const;
+
 export const questionTypeEnum = pgEnum("question_type", questionTypeValues);
 export type QuestionType = (typeof questionTypeValues)[number];
 

@@ -34,3 +34,19 @@ export const formSections = createTable(
 	}),
 	(t) => [index("form_section_form_id_idx").on(t.formId)],
 );
+
+/*
+Form section config structure:
+
+{
+	type: "Section" | "PageBreak" ,
+	collapsible: boolean, // default false,
+	collapsedByDefault: boolean, // default false
+	table:{
+		columns: number | string[], // default 2
+		allowExtendColumns: boolean, // default false
+		requiresAnswerInEachCell: boolean, // default true
+	}//default: null
+}
+
+*/

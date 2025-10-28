@@ -8,10 +8,7 @@ export async function insertUser(user: {
 	passwordHash: string;
 	image?: string;
 }) {
-	const [inserted] = await db
-		.insert(users)
-		.values(user)
-		.returning({ id: users.id });
+	const [inserted] = await db.insert(users).values(user).returning({ id: users.id });
 
 	if (!inserted) {
 		throw new Error("Failed to insert user");

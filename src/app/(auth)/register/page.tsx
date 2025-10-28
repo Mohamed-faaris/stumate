@@ -63,9 +63,7 @@ export default function RegisterPage() {
 				/>
 				<input
 					value={data.image || ""}
-					onChange={(e) =>
-						setData({ ...data, image: e.target.value || undefined })
-					}
+					onChange={(e) => setData({ ...data, image: e.target.value || undefined })}
 					placeholder="Image URL"
 				/>
 				<button type="submit">Register</button>

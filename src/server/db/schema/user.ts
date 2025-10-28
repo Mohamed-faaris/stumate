@@ -23,10 +23,7 @@ export const users = createTable(
 		}),
 		image: d.varchar({ length: 255 }),
 	}),
-	(t) => [
-		index("user_email_idx").on(t.email),
-		index("user_name_idx").on(t.name),
-	],
+	(t) => [index("user_email_idx").on(t.email), index("user_name_idx").on(t.name)],
 );
 
 export const usersMetadata = createTable("user_metadata", (d) => ({

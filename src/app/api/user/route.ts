@@ -9,12 +9,9 @@ export type UserPostResponse = ReturnType<typeof POST>;
 
 export async function POST(request: NextRequest) {
 	try {
-		const { name, email, password, image } = PostBodySchema.parse(
-			await request.json(),
-		);
+		const { name, email, password, image } = PostBodySchema.parse(await request.json());
 
-		const saltRounds =
-			typeof env.SALT_ROUNDS === "number" ? env.SALT_ROUNDS : 10;
+		const saltRounds = typeof env.SALT_ROUNDS === "number" ? env.SALT_ROUNDS : 10;
 		const passwordHash = await bcrypt.hash(password, saltRounds);
 
 		const user = await insertUser({
@@ -41,9 +38,7 @@ export async function POST(request: NextRequest) {
 		if (
 			anyErr &&
 			(anyErr.code === "EMAIL_EXISTS" ||
-				String(anyErr.message).includes(
-					"duplicate key value violates unique constraint",
-				) ||
+				String(anyErr.message).includes("duplicate key value violates unique constraint") ||
 				String(anyErr.message) === "EMAIL_EXISTS")
 		) {
 			return NextResponse.json(

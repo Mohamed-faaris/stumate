@@ -7,13 +7,7 @@ import DiscordProvider from "next-auth/providers/discord";
 import { eq } from "drizzle-orm";
 import { env } from "~/env";
 import { db } from "~/server/db";
-import {
-	type UserRole,
-	accounts,
-	sessions,
-	users,
-	verificationTokens,
-} from "~/server/db/schema";
+import { type UserRole, accounts, sessions, users, verificationTokens } from "~/server/db/schema";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -64,17 +58,11 @@ export const authConfig = {
 				if (!email || !password) return null;
 
 				// find user by email
-				const [user] = await db
-					.select()
-					.from(users)
-					.where(eq(users.email, email));
+				const [user] = await db.select().from(users).where(eq(users.email, email));
 
 				if (!user || !user.passwordHash) return null;
 
-				const isValid = await bcrypt.compare(
-					password,
-					user.passwordHash as string,
-				);
+				const isValid = await bcrypt.compare(password, user.passwordHash as string);
 
 				if (!isValid) return null;
 

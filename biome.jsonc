@@ -6,11 +6,21 @@
 		"useIgnoreFile": true
 	},
 	"files": { "ignoreUnknown": false, "ignore": [] },
-	"formatter": { "enabled": true },
+	"formatter": {
+		"enabled": true,
+		"bracketSpacing": true,
+		"indentStyle": "tab",
+		"lineWidth": 100
+	},
 	"organizeImports": { "enabled": true },
 	"linter": {
 		"enabled": true,
 		"rules": {
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error",
+				"recommended": true
+			},
 			"nursery": {
 				"useSortedClasses": {
 					"level": "warn",

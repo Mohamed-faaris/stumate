@@ -1,5 +1,6 @@
-import { index } from "drizzle-orm/pg-core";
+import { index, primaryKey } from "drizzle-orm/pg-core";
 import { createTable } from "./base";
+import { groups } from "./group";
 import { users } from "./user";
 
 export const forms = createTable(
@@ -7,8 +8,10 @@ export const forms = createTable(
 	(d) => ({
 		id: d.uuid().notNull().primaryKey().defaultRandom(),
 		title: d.varchar({ length: 255 }).notNull(),
-		description: d.text().notNull(),
-		config: d.jsonb().notNull(),
+		description: d.text(),
+		config: d.jsonb().notNull().default("{}"),
+		metadata: d.jsonb().notNull().default("{}"),
+		deadline: d.timestamp({ mode: "date", withTimezone: true }),
 		createdBy: d
 			.uuid()
 			.notNull()
@@ -33,6 +36,25 @@ export const formSections = createTable(
 		order: d.integer().notNull(),
 	}),
 	(t) => [index("form_section_form_id_idx").on(t.formId)],
+);
+
+export const formAssignments = createTable(
+	"form_assignment",
+	(d) => ({
+		formId: d
+			.uuid()
+			.notNull()
+			.references(() => forms.id),
+		groupId: d
+			.uuid()
+			.notNull()
+			.references(() => groups.id),
+	}),
+	(t) => [
+		primaryKey({ columns: [t.formId, t.groupId] }),
+		index("form_assignment_form_id_idx").on(t.formId),
+		index("form_assignment_group_id_idx").on(t.groupId),
+	],
 );
 
 /*

@@ -15,7 +15,7 @@ export const formResponsesLog = createTable(
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		responderId: d.uuid().references(() => users.id),
 	}),
-	(t) => [index("form_response_log_form_id_idx").on(t.formId)],
+	(t) => [index("response_log_id_idx").on(t.formId)],
 );
 
 export const formResponses = createTable("form_response", (d) => ({

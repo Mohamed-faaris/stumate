@@ -1,8 +1,12 @@
 // Re-export all schema exports
 export { createTable } from "./base";
 export { accounts, sessions, verificationTokens } from "./auth";
-export { forms, formSections } from "./form";
-export { formQuestions } from "./form-question";
+export { forms, formSections, formAssignments } from "./form";
+export {
+	formQuestions,
+	questionTypeEnum,
+	type QuestionType,
+} from "./form-question";
 export {
 	formResponsesLog,
 	formResponses,

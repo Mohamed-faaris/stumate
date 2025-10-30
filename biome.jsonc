@@ -18,7 +18,8 @@
 		"rules": {
 			"correctness": {
 				"noUnusedImports": "error",
-				"noUnusedVariables": "error",
+				"noUnusedVariables": "info",
+				"noUnusedFunctionParameters":"info",
 				"recommended": true
 			},
 			"nursery": {

@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
@@ -29,18 +29,17 @@ export async function POST(request: NextRequest) {
 			return new Response("Unauthorized", { status: 401 });
 		}
 		const { title, description, config } = formPostSchema.parse(await request.json());
-		db.transaction(async (tx) => {
-			const form = await tx
-				.insert(forms)
-				.values({
-					title,
-					description,
-					config,
-					createdBy: session.user.id,
-				})
-				.returning({ id: forms.id });
-			return new Response(JSON.stringify({ success: true, formId: form[0].id }), { status: 201 });
-		});
+
+		const [formId] = await db
+			.insert(forms)
+			.values({
+				title,
+				description,
+				config,
+				createdBy: session.user.id,
+			})
+			.returning({ id: forms.id });
+		return NextResponse.json({ success: true, formId }, { status: 201 });
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return new Response(`Invalid form data: ${error.errors.map((e) => e.message).join(", ")}`, {

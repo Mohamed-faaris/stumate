@@ -20,13 +20,14 @@ export const QuestionSchema = z.object({
 export const SectionSchema = z.object({
 	title: z.string().min(1).max(255),
 	description: z.string().optional(),
+	questions: z.array(QuestionSchema).optional(),
 	config: z.object({}).optional(),
 });
 
-const EditFormSchema = z.object({
+export const EditFormSchema = z.object({
 	formMeta: FormMetaSchema,
 	groupsIds: z.array(z.string().uuid()).optional(),
-	section: z.array(SectionSchema).optional(),
+	sections: z.array(SectionSchema).optional(),
 });
 
 export type Question = z.infer<typeof QuestionSchema>;

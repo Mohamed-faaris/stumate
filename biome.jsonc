@@ -19,7 +19,7 @@
 			"correctness": {
 				"noUnusedImports": "error",
 				"noUnusedVariables": "info",
-				"noUnusedFunctionParameters":"info",
+				"noUnusedFunctionParameters": "info",
 				"recommended": true
 			},
 			"nursery": {

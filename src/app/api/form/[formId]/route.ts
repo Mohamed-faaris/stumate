@@ -1,20 +1,23 @@
 import { eq } from "drizzle-orm/sql";
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
 
-export async function POST(request: NextRequest, { params }: { params: { formId: string } }) {
+export async function POST(
+	request: NextRequest,
+	{ params }: { params: Promise<{ formId: string }> },
+) {
+	const { formId } = await params;
 	const session = await auth();
 	if (!session) {
-		return new Response("Unauthorized", { status: 401 });
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
-	const { formId } = params;
 	const body = EditFormSchema.safeParse(await request.json());
 
 	if (!body.success) {
-		return new Response("Invalid request body", { status: 400 });
+		return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 	}
 	const { formMeta, groupsIds, sections } = body.data;
 
@@ -67,8 +70,8 @@ export async function POST(request: NextRequest, { params }: { params: { formId:
 		});
 	} catch (error) {
 		console.error("Error updating form:", error);
-		return new Response("Internal Server Error", { status: 500 });
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 
-	return new Response("Form Questions updated", { status: 200 });
+	return NextResponse.json({ message: "Form Questions updated" }, { status: 200 });
 }

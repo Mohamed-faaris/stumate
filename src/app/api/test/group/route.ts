@@ -1,3 +1,4 @@
+import { desc } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
 import { auth } from "~/server/auth";
@@ -50,6 +51,16 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ success: true, ...result });
 	} catch (error) {
 		console.error("Error creating group:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+	}
+}
+
+export async function GET() {
+	try {
+		const groupsList = await db.select().from(groups).orderBy(desc(groups.createdAt));
+		return NextResponse.json({ success: true, groups: groupsList });
+	} catch (error) {
+		console.error("Error fetching groups:", error);
 		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
 }

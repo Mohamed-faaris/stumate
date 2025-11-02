@@ -1,5 +1,4 @@
 import { index, primaryKey } from "drizzle-orm/pg-core";
-import type { AdapterAccount } from "next-auth/adapters";
 import { createTable } from "./base";
 import { users } from "./user";
 
@@ -10,7 +9,7 @@ export const accounts = createTable(
 			.uuid()
 			.notNull()
 			.references(() => users.id),
-		type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
+		type: d.varchar({ length: 255 }).notNull(),
 		provider: d.varchar({ length: 255 }).notNull(),
 		providerAccountId: d.varchar({ length: 255 }).notNull(),
 		refresh_token: d.text(),
@@ -20,6 +19,8 @@ export const accounts = createTable(
 		scope: d.varchar({ length: 255 }),
 		id_token: d.text(),
 		session_state: d.varchar({ length: 255 }),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 	}),
 	(t) => [
 		primaryKey({ columns: [t.provider, t.providerAccountId] }),
@@ -36,6 +37,8 @@ export const sessions = createTable(
 			.notNull()
 			.references(() => users.id),
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 	}),
 	(t) => [index("t_user_id_idx").on(t.userId)],
 );

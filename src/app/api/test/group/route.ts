@@ -1,7 +1,7 @@
 import { desc } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
-import { auth } from "~/server/auth";
+import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { groups, groupsMembers } from "~/server/db/schema";
 
@@ -13,7 +13,7 @@ const CreateGroupSchema = z.object({
 
 export async function POST(request: NextRequest) {
 	try {
-		const session = await auth();
+		const session = await getSessionFromRequest();
 		if (!session) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}

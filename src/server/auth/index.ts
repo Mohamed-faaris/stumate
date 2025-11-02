@@ -1,10 +1,21 @@
-import NextAuth from "next-auth";
-import { cache } from "react";
+import { headers } from "next/headers";
+import { auth as authInstance } from "./config";
 
-import { authConfig } from "./config";
+export const auth = authInstance;
 
-const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
+/**
+ * Helper function to get session server-side in API routes
+ * Usage: const session = await getSessionFromRequest();
+ */
+export async function getSessionFromRequest() {
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
+		return session;
+	} catch {
+		return null;
+	}
+}
 
-const auth = cache(uncachedAuth);
-
-export { auth, handlers, signIn, signOut };
+export default auth;

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm/sql";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "~/server/auth";
+import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
@@ -10,7 +10,7 @@ export async function POST(
 	{ params }: { params: Promise<{ formId: string }> },
 ) {
 	const { formId } = await params;
-	const session = await auth();
+	const session = await getSessionFromRequest();
 	if (!session) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
@@ -19,10 +19,10 @@ export async function POST(
 	if (!body.success) {
 		return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 	}
-	const { formMeta, groupsIds, sections } = body.data;
+	const { formMeta, groupsIds: _groupsIds, sections: _sections } = body.data;
 
 	try {
-		const result = await db.transaction(async (tx) => {
+		const _result = await db.transaction(async (tx) => {
 			await tx
 				.update(forms)
 				.set({

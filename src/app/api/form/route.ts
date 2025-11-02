@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
-import { auth } from "~/server/auth";
+import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { forms } from "~/server/db/schema";
 
@@ -24,7 +24,7 @@ const formPostSchema = z.object({
 
 export async function POST(request: NextRequest) {
 	try {
-		const session = await auth();
+		const session = await getSessionFromRequest();
 		if (!session) {
 			return new Response("Unauthorized", { status: 401 });
 		}

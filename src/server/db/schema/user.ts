@@ -1,4 +1,5 @@
-import { index, pgEnum } from "drizzle-orm/pg-core";
+import { pgEnum } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { createTable } from "./base";
 
 const rolesValues = ["USER", "ADMIN", "DEV"] as const;
@@ -9,29 +10,15 @@ const genderValues = ["MALE", "FEMALE", "OTHER"] as const;
 export const genderEnum = pgEnum("gender", genderValues);
 export type Gender = (typeof genderValues)[number];
 
-export const users = createTable(
-	"user",
-	(d) => ({
-		id: d.uuid().notNull().primaryKey().defaultRandom(),
-		name: d.varchar({ length: 255 }),
-		role: roles("role").default("USER").notNull(),
-		passwordHash: d.char({ length: 60 }),
-		email: d.varchar({ length: 255 }).notNull().unique(),
-		emailVerified: d.timestamp({
-			mode: "date",
-			withTimezone: true,
-		}),
-		image: d.varchar({ length: 255 }),
-	}),
-	(t) => [index("user_email_idx").on(t.email), index("user_name_idx").on(t.name)],
-);
-
 export const usersMetadata = createTable("user_metadata", (d) => ({
 	userId: d
 		.uuid()
 		.notNull()
 		.primaryKey()
-		.references(() => users.id),
+		.references(() => user.id),
+
+	name: d.varchar({ length: 255 }),
+	role: roles("role").default("USER").notNull(),
 	gender: genderEnum("user_gender").notNull(),
 	birthOfDate: d.date(),
 	phoneNumber: d.varchar({ length: 20 }),

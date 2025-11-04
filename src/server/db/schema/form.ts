@@ -1,7 +1,7 @@
 import { index, primaryKey } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { createTable } from "./base";
 import { groups } from "./group";
-import { users } from "./user";
 
 export const forms = createTable(
 	"form",
@@ -15,7 +15,7 @@ export const forms = createTable(
 		createdBy: d
 			.uuid()
 			.notNull()
-			.references(() => users.id),
+			.references(() => user.id),
 		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 	}),

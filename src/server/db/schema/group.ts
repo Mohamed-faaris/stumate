@@ -1,6 +1,6 @@
 import { index, pgEnum, primaryKey } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { createTable } from "./base";
-import { users } from "./user";
 
 export const groupRolesValues = ["MEMBER", "MODERATOR", "ADMIN"] as const;
 export const groupRoles = pgEnum("group_role", groupRolesValues);
@@ -15,7 +15,7 @@ export const groups = createTable(
 		createdBy: d
 			.uuid()
 			.notNull()
-			.references(() => users.id),
+			.references(() => user.id),
 		size: d.integer().notNull().default(0),
 		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
@@ -33,7 +33,7 @@ export const groupsMembers = createTable(
 		userId: d
 			.uuid()
 			.notNull()
-			.references(() => users.id),
+			.references(() => user.id),
 		role: groupRoles("role").default("MEMBER").notNull(),
 		joinedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),

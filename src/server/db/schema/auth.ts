@@ -1,54 +1,62 @@
-import { index, primaryKey } from "drizzle-orm/pg-core";
+import { boolean, text, timestamp } from "drizzle-orm/pg-core";
 import { createTable } from "./base";
-import { users } from "./user";
 
-export const accounts = createTable(
-	"account",
-	(d) => ({
-		userId: d
-			.uuid()
-			.notNull()
-			.references(() => users.id),
-		type: d.varchar({ length: 255 }).notNull(),
-		provider: d.varchar({ length: 255 }).notNull(),
-		providerAccountId: d.varchar({ length: 255 }).notNull(),
-		refresh_token: d.text(),
-		access_token: d.text(),
-		expires_at: d.integer(),
-		token_type: d.varchar({ length: 255 }),
-		scope: d.varchar({ length: 255 }),
-		id_token: d.text(),
-		session_state: d.varchar({ length: 255 }),
-		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
-		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
-	}),
-	(t) => [
-		primaryKey({ columns: [t.provider, t.providerAccountId] }),
-		index("account_user_id_idx").on(t.userId),
-	],
-);
+export const user = createTable("user", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	email: text("email").notNull().unique(),
+	emailVerified: boolean("email_verified").default(false).notNull(),
+	image: text("image"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});
 
-export const sessions = createTable(
-	"session",
-	(d) => ({
-		sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-		userId: d
-			.uuid()
-			.notNull()
-			.references(() => users.id),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
-		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
-	}),
-	(t) => [index("t_user_id_idx").on(t.userId)],
-);
+export const session = createTable("session", {
+	id: text("id").primaryKey(),
+	expiresAt: timestamp("expires_at").notNull(),
+	token: text("token").notNull().unique(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+	ipAddress: text("ip_address"),
+	userAgent: text("user_agent"),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+});
 
-export const verificationTokens = createTable(
-	"verification_token",
-	(d) => ({
-		identifier: d.varchar({ length: 255 }).notNull(),
-		token: d.varchar({ length: 255 }).notNull(),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-	}),
-	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
-);
+export const account = createTable("account", {
+	id: text("id").primaryKey(),
+	accountId: text("account_id").notNull(),
+	providerId: text("provider_id").notNull(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	accessToken: text("access_token"),
+	refreshToken: text("refresh_token"),
+	idToken: text("id_token"),
+	accessTokenExpiresAt: timestamp("access_token_expires_at"),
+	refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+	scope: text("scope"),
+	password: text("password"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});
+
+export const verification = createTable("verification", {
+	id: text("id").primaryKey(),
+	identifier: text("identifier").notNull(),
+	value: text("value").notNull(),
+	expiresAt: timestamp("expires_at").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});

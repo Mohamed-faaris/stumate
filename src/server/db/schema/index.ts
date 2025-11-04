@@ -1,6 +1,11 @@
 // Re-export all schema exports
 export { createTable } from "./base";
-export { accounts, sessions, verificationTokens } from "./auth";
+export {
+	user,
+	session,
+	account,
+	verification,
+} from "./auth";
 export { forms, formSections, formAssignments } from "./form";
 export {
 	formQuestions,
@@ -13,7 +18,6 @@ export {
 } from "./form-response";
 export { groups, groupsMembers, groupRoles, type GroupRole } from "./group";
 export {
-	users,
 	usersMetadata,
 	roles,
 	genderEnum,

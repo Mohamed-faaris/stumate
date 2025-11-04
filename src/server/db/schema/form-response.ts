@@ -1,7 +1,7 @@
 import { index } from "drizzle-orm/pg-core";
+import { user } from "./auth";
 import { createTable } from "./base";
 import { forms } from "./form";
-import { users } from "./user";
 
 export const formResponsesLog = createTable(
 	"form_response_log",
@@ -13,7 +13,7 @@ export const formResponsesLog = createTable(
 			.references(() => forms.id),
 		submittedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-		responderId: d.uuid().references(() => users.id),
+		responderId: d.uuid().references(() => user.id),
 	}),
 	(t) => [index("response_log_id_idx").on(t.formId)],
 );

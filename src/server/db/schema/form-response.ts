@@ -13,7 +13,7 @@ export const formResponsesLog = createTable(
 			.references(() => forms.id),
 		submittedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
-		responderId: d.uuid().references(() => user.id),
+		responderId: d.uuid().references(() => user.uid),
 	}),
 	(t) => [index("response_log_id_idx").on(t.formId)],
 );

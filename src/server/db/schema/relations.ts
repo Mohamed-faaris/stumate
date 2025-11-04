@@ -7,9 +7,9 @@ export const usersRelations = relations(user, ({ many }) => ({
 }));
 
 export const accountsRelations = relations(account, ({ one }) => ({
-	user: one(user, { fields: [account.userId], references: [user.id] }),
+	user: one(user, { fields: [account.userId], references: [user.uid] }),
 }));
 
 export const sessionsRelations = relations(session, ({ one }) => ({
-	user: one(user, { fields: [session.userId], references: [user.id] }),
+	user: one(user, { fields: [session.userId], references: [user.uid] }),
 }));

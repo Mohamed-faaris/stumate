@@ -15,7 +15,7 @@ export const forms = createTable(
 		createdBy: d
 			.uuid()
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.uid),
 		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 	}),

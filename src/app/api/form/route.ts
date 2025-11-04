@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 				title,
 				description,
 				config,
-				createdBy: session.user.id,
+				createdBy: session.user.uid,
 			})
 			.returning({ id: forms.id });
 		return NextResponse.json({ success: true, formId }, { status: 201 });

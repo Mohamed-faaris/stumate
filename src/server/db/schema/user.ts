@@ -15,7 +15,7 @@ export const usersMetadata = createTable("user_metadata", (d) => ({
 		.uuid()
 		.notNull()
 		.primaryKey()
-		.references(() => user.id),
+		.references(() => user.uid),
 
 	name: d.varchar({ length: 255 }),
 	role: roles("role").default("USER").notNull(),

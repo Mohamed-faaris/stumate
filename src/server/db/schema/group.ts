@@ -15,7 +15,7 @@ export const groups = createTable(
 		createdBy: d
 			.uuid()
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.uid),
 		size: d.integer().notNull().default(0),
 		createdAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
@@ -33,7 +33,7 @@ export const groupsMembers = createTable(
 		userId: d
 			.uuid()
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.uid),
 		role: groupRoles("role").default("MEMBER").notNull(),
 		joinedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),

@@ -1,13 +1,22 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Save list of staged files before formatting
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|tsx|jsx|json|md)$')
+echo "Running pre-commit hook..."
 
-# Run Biome formatter with --staged
-pnpm biome check --write --staged
+# Check if there are any staged files that need formatting
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|tsx|jsx|json|md)$' || true)
 
-# Restage only the files you just formatted
-echo "$STAGED_FILES" | xargs git add
+if [ -n "$STAGED_FILES" ]; then
+    echo "Found staged files: $STAGED_FILES"
+    echo "Running Biome formatting..."
 
-echo "Pre-commit Biome formatting completed."
+    if pnpm biome check --write --staged; then
+        echo "$STAGED_FILES" | xargs git add
+        echo "Pre-commit formatting completed successfully."
+    else
+        echo "Biome formatting failed."
+        exit 1
+    fi
+else
+    echo "No staged files to format. Skipping..."
+fi

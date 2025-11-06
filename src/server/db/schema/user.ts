@@ -15,12 +15,8 @@ export const users = createTable(
 		id: d.uuid().notNull().primaryKey().defaultRandom(),
 		name: d.varchar({ length: 255 }),
 		role: roles("role").default("USER").notNull(),
-		passwordHash: d.char({ length: 60 }),
 		email: d.varchar({ length: 255 }).notNull().unique(),
-		emailVerified: d.timestamp({
-			mode: "date",
-			withTimezone: true,
-		}),
+		emailVerified: d.boolean(),
 		image: d.varchar({ length: 255 }),
 		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),

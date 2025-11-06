@@ -25,6 +25,11 @@ export const auth = betterAuth({
 	},
 	emailAndPassword: {
 		enabled: true,
-		//autoSignUpEnabled: true,
+		autoSignUpEnabled: true,
+	},
+	advanced: {
+		database: {
+			generateId: () => crypto.randomUUID(),
+		},
 	},
 });

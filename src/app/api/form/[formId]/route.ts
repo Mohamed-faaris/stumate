@@ -19,7 +19,8 @@ export async function POST(
 	if (!body.success) {
 		return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 	}
-	const { formMeta, groupsIds: _groupsIds, sections: _sections } = body.data;
+	// biome-ignore lint/correctness/noUnusedVariables: used later
+	const { formMeta, groupsIds, sections } = body.data;
 
 	try {
 		const _result = await db.transaction(async (tx) => {
@@ -49,14 +50,14 @@ export async function POST(
 					.returning({ id: formSections.id });
 				const questions = sections.flatMap((sec, secIndex) => {
 					if (sec.questions && sec.questions.length > 0) {
-						return sec.questions.map((q, qIndex) => ({
+						return sec.questions.map((question, qIndex) => ({
 							// biome-ignore lint/style/noNonNullAssertion: index safe because we just inserted these
 							sectionId: sectionsIds[secIndex]!.id,
-							questionType: q.type,
-							questionText: q.questionText,
-							questionDescription: q.questionDescription ?? undefined,
-							required: q.required ?? false,
-							config: q.config ?? {},
+							questionType: question.type,
+							questionText: question.questionText,
+							questionDescription: question.questionDescription ?? undefined,
+							required: question.required ?? false,
+							config: question.config ?? {},
 							order: qIndex + 1,
 						}));
 					}

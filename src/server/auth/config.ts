@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -25,7 +26,12 @@ export const auth = betterAuth({
 	},
 	emailAndPassword: {
 		enabled: true,
-		autoSignUpEnabled: true,
+		//requireEmailVerification: env.NODE_ENV === "production",
+		autoSignUpEnabled: env.NODE_ENV !== "production", // need opinion on this
+		password: {
+			hash: async (password) => bcrypt.hash(password, env.SALT_ROUNDS),
+			verify: async ({ password, hash }) => bcrypt.compare(password, hash),
+		},
 	},
 	advanced: {
 		database: {

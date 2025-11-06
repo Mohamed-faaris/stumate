@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import z from "zod";
 import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
-import { groupsMembers } from "~/server/db/schema";
+import { groups, groupsMembers } from "~/server/db/schema";
 
 const AddMemberSchema = z.object({
 	groupId: z.string().uuid(),
@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
 			.from(groupsMembers)
 			.where(and(eq(groupsMembers.groupId, groupId), eq(groupsMembers.userId, userId)))
 			.limit(1);
+
+		db.update(groups).set({ size: existingMember.length + 1 }).where(eq(groups.id, groupId));
 
 		if (existingMember.length > 0) {
 			return NextResponse.json(

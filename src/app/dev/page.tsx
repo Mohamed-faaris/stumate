@@ -4,6 +4,20 @@ import { faker } from "@faker-js/faker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
+import { signIn, signUp, useSession } from "~/lib/auth-client";
+
+// Sign Up Form Schema
+const signUpFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Name is required"),
+});
+
+// Sign In Form Schema
+const signInFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 // Group Form Schema
 const groupFormSchema = z.object({
@@ -11,9 +25,9 @@ const groupFormSchema = z.object({
   description: z.string().optional(),
 });
 
-type GroupFormData = z.infer<typeof groupFormSchema>;
-
-// Types
+type SignUpFormData = z.infer<typeof signUpFormSchema>;
+type SignInFormData = z.infer<typeof signInFormSchema>;
+type GroupFormData = z.infer<typeof groupFormSchema>; // Types
 interface User {
   id: string;
   name: string;
@@ -55,6 +69,23 @@ const createGroup = async (groupData: GroupFormData) => {
   return response.json();
 };
 
+const handleSignUp = async (data: SignUpFormData) => {
+  const result = await signUp.email({
+    email: data.email,
+    password: data.password,
+    name: data.name,
+  });
+  return result;
+};
+
+const handleSignIn = async (data: SignInFormData) => {
+  const result = await signIn.email({
+    email: data.email,
+    password: data.password,
+  });
+  return result;
+};
+
 const addMemberToGroup = async (data: { groupId: string; userId: string }) => {
   const response = await fetch("/api/test/group/members", {
     method: "POST",
@@ -64,6 +95,263 @@ const addMemberToGroup = async (data: { groupId: string; userId: string }) => {
   if (!response.ok) throw new Error("Failed to add member");
   return response.json();
 };
+
+function SignUpForm() {
+  const queryClient = useQueryClient();
+  const signUpMutation = useMutation({
+    mutationFn: handleSignUp,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      alert("Sign up successful!");
+    },
+    onError: (error) => {
+      alert(`Sign up failed: ${error.message}`);
+    },
+  });
+
+  const [formData, setFormData] = useState<SignUpFormData>({
+    email: "",
+    password: "123123123",
+    name: "",
+  });
+  const [errors, setErrors] = useState<Partial<SignUpFormData>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const validatedData = signUpFormSchema.parse(formData);
+      signUpMutation.mutate(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        for (const err of error.errors) {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        }
+        setErrors(fieldErrors as Partial<SignUpFormData>);
+      }
+    }
+  };
+
+  const populateWithFaker = () => {
+    setFormData({
+      email: faker.internet.email(),
+      password: "123123123",
+      name: faker.person.fullName(),
+    });
+    setErrors({});
+  };
+
+  return (
+    <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 font-bold text-2xl">Sign Up</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="signup-name"
+            className="block font-medium text-gray-700 text-sm"
+          >
+            Name
+          </label>
+          <input
+            type="text"
+            id="signup-name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          />
+          {errors.name && (
+            <p className="mt-1 text-red-600 text-sm">{errors.name}</p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="signup-email"
+            className="block font-medium text-gray-700 text-sm"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            id="signup-email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          />
+          {errors.email && (
+            <p className="mt-1 text-red-600 text-sm">{errors.email}</p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="signup-password"
+            className="block font-medium text-gray-700 text-sm"
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            id="signup-password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          />
+          {errors.password && (
+            <p className="mt-1 text-red-600 text-sm">{errors.password}</p>
+          )}
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={populateWithFaker}
+            className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Populate with Faker
+          </button>
+          <button
+            type="submit"
+            className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Sign Up
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function SignInForm() {
+  const queryClient = useQueryClient();
+  const signInMutation = useMutation({
+    mutationFn: handleSignIn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+      alert("Sign in successful!");
+    },
+    onError: (error) => {
+      alert(`Sign in failed: ${error.message}`);
+    },
+  });
+
+  const [formData, setFormData] = useState<SignInFormData>({
+    email: "",
+    password: "123123",
+  });
+  const [errors, setErrors] = useState<Partial<SignInFormData>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const validatedData = signInFormSchema.parse(formData);
+      signInMutation.mutate(validatedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        for (const err of error.errors) {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        }
+        setErrors(fieldErrors as Partial<SignInFormData>);
+      }
+    }
+  };
+
+  const populateWithFaker = () => {
+    setFormData({
+      email: faker.internet.email(),
+      password: "123123123",
+    });
+    setErrors({});
+  };
+
+  return (
+    <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 font-bold text-2xl">Sign In</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="signin-email"
+            className="block font-medium text-gray-700 text-sm"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            id="signin-email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          />
+          {errors.email && (
+            <p className="mt-1 text-red-600 text-sm">{errors.email}</p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="signin-password"
+            className="block font-medium text-gray-700 text-sm"
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            id="signin-password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          />
+          {errors.password && (
+            <p className="mt-1 text-red-600 text-sm">{errors.password}</p>
+          )}
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={populateWithFaker}
+            className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Populate with Faker
+          </button>
+          <button
+            type="submit"
+            className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 function GroupForm() {
   const queryClient = useQueryClient();
@@ -183,6 +471,7 @@ function GroupForm() {
 
 export default function DevPage() {
   const queryClient = useQueryClient();
+  const { data: session, isPending: sessionLoading } = useSession();
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["users"],
@@ -213,8 +502,36 @@ export default function DevPage() {
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4">
         <h1 className="mb-8 text-center font-bold text-3xl">Dev Page</h1>
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-3">
+          <SignUpForm />
+          <SignInForm />
           <GroupForm />
+        </div>
+
+        <div className="mt-12">
+          <div className="rounded-lg bg-white p-6 shadow-md">
+            <h2 className="mb-4 font-bold text-2xl">Current Session</h2>
+            {sessionLoading ? (
+              <p>Loading session...</p>
+            ) : session ? (
+              <div className="space-y-2">
+                <p>
+                  <strong>Name:</strong> {session.user?.name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {session.user?.email}
+                </p>
+                <p>
+                  <strong>ID:</strong> {session.user?.id}
+                </p>
+                <pre className="mt-4 overflow-auto rounded bg-gray-50 p-4 text-sm">
+                  {JSON.stringify(session, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <p className="text-gray-500">No active session</p>
+            )}
+          </div>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-2">

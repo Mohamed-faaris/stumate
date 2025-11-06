@@ -49,6 +49,8 @@ export const verificationTokens = createTable(
 		identifier: d.varchar({ length: 255 }).notNull(),
 		token: d.varchar({ length: 255 }).notNull(),
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );

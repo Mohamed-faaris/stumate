@@ -22,6 +22,8 @@ export const users = createTable(
 			withTimezone: true,
 		}),
 		image: d.varchar({ length: 255 }),
+		createdAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
+		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 	}),
 	(t) => [index("user_email_idx").on(t.email), index("user_name_idx").on(t.name)],
 );

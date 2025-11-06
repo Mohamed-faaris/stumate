@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "~/lib/auth-client";
+import { signIn, signUp } from "~/lib/auth-client";
 
 export default function RegisterPage() {
 	const router = useRouter();
@@ -32,10 +32,11 @@ export default function RegisterPage() {
 
 		try {
 			// First, sign up with email and password
-			const signUpResult = await signIn.email(
+			const signUpResult = await signUp.email(
 				{
 					email,
 					password,
+					name,
 					callbackURL: "/dashboard",
 				},
 				{
@@ -43,18 +44,6 @@ export default function RegisterPage() {
 						setLoading(true);
 					},
 					onSuccess: async () => {
-						// After sign-up, update the user's name
-						try {
-							await fetch("/api/auth/update-profile", {
-								method: "POST",
-								headers: {
-									"Content-Type": "application/json",
-								},
-								body: JSON.stringify({ name }),
-							});
-						} catch (err) {
-							console.error("Failed to update profile:", err);
-						}
 						router.push("/dashboard");
 					},
 					onError: (ctx) => {

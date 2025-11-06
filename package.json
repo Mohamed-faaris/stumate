@@ -7,7 +7,7 @@
 		"build": "next build",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
-		"check:safe": "check:write",
+		"check:safe": "pnpm check:write",
 		"check:write": "biome check --write .",
 		"check:staged": "biome check --write --staged",
 		"db:generate": "drizzle-kit generate",
@@ -19,7 +19,8 @@
 		"preview": "next build && next start",
 		"start": "next start",
 		"typecheck": "tsc --noEmit",
-		"prepare": "husky install"
+		"prepare": "husky install",
+		"ca": "pnpm check:write && git commit -a -m"
 	},
 	"dependencies": {
 		"@t3-oss/env-nextjs": "^0.12.0",

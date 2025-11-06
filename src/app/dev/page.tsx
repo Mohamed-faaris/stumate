@@ -504,7 +504,7 @@ export default function DevPage() {
 						) : (
 							<div className="space-y-2">
 								{(usersData as ApiResponse<User>)?.users?.map((user: User) => (
-									<div key={user.uid} className="rounded border p-2">
+									<div key={user.id} className="rounded border p-2">
 										<p className="font-medium">{user.name}</p>
 										<p className="text-gray-600 text-sm">{user.email}</p>
 									</div>
@@ -534,7 +534,7 @@ export default function DevPage() {
 												>
 													<option value="">Select User</option>
 													{(usersData as ApiResponse<User>)?.users?.map((user: User) => (
-														<option key={user.uid} value={user.uid}>
+														<option key={user.id} value={user.id}>
 															{user.name}
 														</option>
 													))}

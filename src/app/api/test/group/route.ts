@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 				.values({
 					name,
 					description,
-					createdBy: session.user.uid,
+					createdBy: session.user.id,
 					size: userIds ? userIds.length : 0,
 				})
 				.returning({ id: groups.id });

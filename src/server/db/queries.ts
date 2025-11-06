@@ -1,14 +1,18 @@
 import { db } from ".";
-import { type UserRole, users } from "./schema";
+import { type UserRole, user } from "./schema";
 
-export async function insertUser(user: {
+export async function insertUser(userData: {
 	name: string;
 	role: UserRole;
 	email: string;
 	passwordHash: string;
 	image?: string;
 }) {
-	const [inserted] = await db.insert(users).values(user).returning({ id: users.id });
+	const id = crypto.randomUUID();
+	const [inserted] = await db
+		.insert(user)
+		.values({ id, ...userData })
+		.returning({ id: user.id });
 
 	if (!inserted) {
 		throw new Error("Failed to insert user");

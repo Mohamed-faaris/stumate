@@ -52,7 +52,7 @@ The database schema has been separated into different files organized by domain/
 Instead of importing everything from one large file, you can now:
 
 ```typescript
-import { users, forms } from "~/server/db/schema";
+import { user, forms } from "~/server/db/schema";
 ```
 
 All exports are still available through `index.ts`, so existing code will continue to work.

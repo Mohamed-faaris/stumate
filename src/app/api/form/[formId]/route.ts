@@ -34,11 +34,11 @@ export async function POST(
 					updatedAt: new Date(),
 				})
 				.where(eq(forms.id, formId));
-			if (sections && sections.length > 0) {
+			if (_sections && _sections.length > 0) {
 				const sectionsIds = await tx
 					.insert(formSections)
 					.values(
-						sections.map((sec, index) => ({
+						_sections.map((sec, index) => ({
 							formId,
 							title: sec.title,
 							description: sec.description ?? "",
@@ -47,7 +47,7 @@ export async function POST(
 						})),
 					)
 					.returning({ id: formSections.id });
-				const questions = sections.flatMap((sec, secIndex) => {
+				const questions = _sections.flatMap((sec, secIndex) => {
 					if (sec.questions && sec.questions.length > 0) {
 						return sec.questions.map((q, qIndex) => ({
 							// biome-ignore lint/style/noNonNullAssertion: index safe because we just inserted these

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { desc, eq } from "drizzle-orm";
 import z from "zod";
 import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
@@ -21,6 +22,33 @@ const formPostSchema = z.object({
 			.default(null),
 	}),
 });
+
+export async function GET() {
+	try {
+		const session = await getSessionFromRequest();
+		if (!session) {
+			return new Response("Unauthorized", { status: 401 });
+		}
+
+		const allForms = await db
+			.select({
+				id: forms.id,
+				title: forms.title,
+				description: forms.description,
+				config: forms.config,
+				createdAt: forms.createdAt,
+				updatedAt: forms.updatedAt,
+			})
+			.from(forms)
+			.where(eq(forms.createdBy, session.user.id))
+			.orderBy(desc(forms.updatedAt));
+
+		return NextResponse.json({ success: true, forms: allForms });
+	} catch (error) {
+		console.error("Error fetching forms:", error);
+		return new Response("Internal Server Error", { status: 500 });
+	}
+}
 
 export async function POST(request: NextRequest) {
 	try {

@@ -42,10 +42,20 @@ interface Group {
   size: number;
 }
 
+interface Form {
+  id: string;
+  title: string;
+  description: string | null;
+  config: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   users?: T[];
   groups?: T[];
+  forms?: T[];
 }
 const fetchUsers = async () => {
   const response = await fetch("/api/test/user");
@@ -96,6 +106,35 @@ const addMemberToGroup = async (data: { groupId: string; userId: string }) => {
   return response.json();
 };
 
+const createForm = async (data: {
+  title: string;
+  description: string;
+  config?: unknown;
+}) => {
+  const response = await fetch("/api/form", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to create form");
+  return response.json();
+};
+
+const updateForm = async (formId: string, data: EditForm) => {
+  const response = await fetch(`/api/form/${formId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to update form");
+  return response.json();
+};
+
+const fetchForms = async () => {
+  const response = await fetch("/api/form");
+  if (!response.ok) throw new Error("Failed to fetch forms");
+  return response.json();
+};
 function SignUpForm() {
   const queryClient = useQueryClient();
   const signUpMutation = useMutation({
@@ -232,6 +271,216 @@ function SignUpForm() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function FormCreator() {
+  const _queryClient = useQueryClient();
+  const createFormMutation = useMutation({
+    mutationFn: createForm,
+    onSuccess: (data) => {
+      alert(`Form created successfully! ID: ${data.formId}`);
+    },
+    onError: (error) => {
+      alert(`Error creating form: ${error.message}`);
+    },
+  });
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    config: {
+      type: "Section" as const,
+      collapsible: false,
+      collapsedByDefault: false,
+    },
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createFormMutation.mutate({
+      title: formData.title,
+      description: formData.description,
+      config: formData.config,
+    });
+  };
+
+  const populateWithFaker = () => {
+    setFormData({
+      title: faker.lorem.words(3),
+      description: faker.lorem.sentence(),
+      config: {
+        type: "Section",
+        collapsible: false,
+        collapsedByDefault: false,
+      },
+    });
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 font-bold text-2xl">Form Creator</h2>
+
+      {/* Basic Form Creation */}
+      <div className="mb-8">
+        <h3 className="mb-4 font-semibold text-lg">Create Form</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="form-title"
+              className="block font-medium text-gray-700 text-sm"
+            >
+              Title
+            </label>
+            <input
+              type="text"
+              id="form-title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="form-description"
+              className="block font-medium text-gray-700 text-sm"
+            >
+              Description
+            </label>
+            <textarea
+              id="form-description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={populateWithFaker}
+              className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Populate with Faker
+            </button>
+            <button
+              type="submit"
+              className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              Create Form
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function FormsList() {
+  const {
+    data: formsData,
+    isLoading: formsLoading,
+    error: formsError,
+  } = useQuery({
+    queryKey: ["forms"],
+    queryFn: fetchForms,
+  });
+
+  if (formsLoading) {
+    return (
+      <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md">
+        <h2 className="mb-4 font-bold text-2xl">All Forms</h2>
+        <p>Loading forms...</p>
+      </div>
+    );
+  }
+
+  if (formsError) {
+    return (
+      <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md">
+        <h2 className="mb-4 font-bold text-2xl">All Forms</h2>
+        <p className="text-red-600">
+          Error loading forms: {formsError.message}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 font-bold text-2xl">All Forms</h2>
+
+      {!formsData?.forms || formsData.forms.length === 0 ? (
+        <p className="text-gray-500">
+          No forms found. Create your first form above!
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {formsData.forms.map((form: Form) => (
+            <div key={form.id} className="rounded-lg border p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{form.title}</h3>
+                  {form.description && (
+                    <p className="mt-1 text-gray-600">{form.description}</p>
+                  )}
+                  <div className="mt-2 text-gray-500 text-sm">
+                    <p>
+                      Created: {new Date(form.createdAt).toLocaleDateString()}
+                    </p>
+                    <p>
+                      Last updated:{" "}
+                      {new Date(form.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="ml-4 flex space-x-2">
+                  <button
+                    type="button"
+                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                    onClick={() => alert(`View form: ${form.id}`)}
+                  >
+                    View
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
+                    onClick={() => alert(`Edit form: ${form.id}`)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                    onClick={() => {
+                      if (confirm(`Delete form "${form.title}"?`)) {
+                        alert(`Delete form: ${form.id}`);
+                      }
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -502,10 +751,15 @@ export default function DevPage() {
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4">
         <h1 className="mb-8 text-center font-bold text-3xl">Dev Page</h1>
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <SignUpForm />
           <SignInForm />
           <GroupForm />
+          <FormCreator />
+        </div>
+
+        <div className="mt-12">
+          <FormsList />
         </div>
 
         <div className="mt-12">

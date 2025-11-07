@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
 			.where(and(eq(groupsMembers.groupId, groupId), eq(groupsMembers.userId, userId)))
 			.limit(1);
 
-		db.update(groups).set({ size: existingMember.length + 1 }).where(eq(groups.id, groupId));
+		db.update(groups)
+			.set({ size: existingMember.length + 1 })
+			.where(eq(groups.id, groupId));
 
 		if (existingMember.length > 0) {
 			return NextResponse.json(

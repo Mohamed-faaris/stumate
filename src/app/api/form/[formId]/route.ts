@@ -5,7 +5,9 @@ import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
 
-export async function GET({ params }: { params: Promise<{ formId: string }> }) {
+export async function GET(
+	request: NextRequest,
+	{ params }: { params: Promise<{ formId: string }> }) {
 	const { formId } = await params;
 	try {
 		const session = await getSessionFromRequest();
@@ -108,7 +110,9 @@ export async function POST(
 	return NextResponse.json({ message: "Form Questions updated" }, { status: 200 });
 }
 
-export async function DELETE({ params }: { params: Promise<{ formId: string }> }) {
+export async function DELETE(
+	request: NextRequest,
+	{ params }: { params: Promise<{ formId: string }> }) {
 	const { formId } = await params;
 	const session = await getSessionFromRequest();
 	if (!session) {

@@ -10,6 +10,7 @@ import { FormsList } from "~/components/dev/FormsList";
 import { SessionDisplay } from "~/components/dev/SessionDisplay";
 import { UsersList } from "~/components/dev/UsersList";
 import { GroupsList } from "~/components/dev/GroupsList";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -71,10 +72,10 @@ export default function DevPage() {
     mutationFn: addMemberToGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
-      alert("Member added successfully!");
+      toast.success("Member added successfully!");
     },
     onError: (error) => {
-      alert(`Error adding member: ${error.message}`);
+      toast.error(`Error adding member: ${error.message}`);
     },
   });
 

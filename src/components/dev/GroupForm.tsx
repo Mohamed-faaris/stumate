@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
 
 // Group Form Schema
 const groupFormSchema = z.object({
@@ -29,10 +30,10 @@ export function GroupForm() {
     mutationFn: createGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
-      alert("Group created successfully!");
+      toast.success("Group created successfully!");
     },
     onError: (error) => {
-      alert(`Error creating group: ${error.message}`);
+      toast.error(`Error creating group: ${error.message}`);
     },
   });
 

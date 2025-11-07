@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { questionTypeValues } from "~/server/db/schema/form-question";
 import type { EditForm, Question, Section } from "~/types/form";
+import { toast } from "sonner";
 
 interface Form {
   id: string;
@@ -53,10 +54,10 @@ export function FormsList() {
       updateForm(formId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forms"] });
-      alert("Form updated successfully!");
+      toast.success("Form updated successfully!");
     },
     onError: (error) => {
-      alert(`Error updating form: ${error.message}`);
+      toast.error(`Error updating form: ${error.message}`);
     },
   });
 
@@ -196,9 +197,9 @@ export function FormsList() {
                   <button
                     type="button"
                     className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-                    onClick={() => alert(`View form: ${form.id}`)}
+                    onClick={() => toast.info(JSON.stringify(form, null, 2))}
                   >
-                    View
+                    Get as JSON
                   </button>
                   <button
                     type="button"
@@ -216,7 +217,7 @@ export function FormsList() {
                   <button
                     type="button"
                     className="rounded bg-green-600 px-3 py-1 text-sm text-white hover:bg-green-700"
-                    onClick={() => alert(`Edit form: ${form.id}`)}
+                    onClick={() => toast.info(`Edit form: ${form.id}`)}
                   >
                     Edit
                   </button>
@@ -225,7 +226,7 @@ export function FormsList() {
                     className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                     onClick={() => {
                       if (confirm(`Delete form "${form.title}"?`)) {
-                        alert(`Delete form: ${form.id}`);
+                        toast.info(`Delete form: ${form.id}`);
                       }
                     }}
                   >

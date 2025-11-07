@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -61,10 +62,10 @@ export function GroupsList() {
     mutationFn: addMemberToGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
-      alert("Member added successfully!");
+      toast.success("Member added successfully!");
     },
     onError: (error) => {
-      alert(`Error adding member: ${error.message}`);
+      toast.error(`Error adding member: ${error.message}`);
     },
   });
 

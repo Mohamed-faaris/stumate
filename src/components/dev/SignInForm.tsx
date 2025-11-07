@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { signIn } from "~/lib/auth-client";
+import { toast } from "sonner";
 
 // Sign In Form Schema
 const signInFormSchema = z.object({
@@ -28,10 +29,10 @@ export function SignInForm() {
     mutationFn: handleSignIn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });
-      alert("Sign in successful!");
+      toast.success("Sign in successful!");
     },
     onError: (error) => {
-      alert(`Sign in failed: ${error.message}`);
+      toast.error(`Sign in failed: ${error.message}`);
     },
   });
 

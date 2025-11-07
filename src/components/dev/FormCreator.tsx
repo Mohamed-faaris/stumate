@@ -3,6 +3,7 @@
 import { faker } from "@faker-js/faker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const createForm = async (data: {
   title: string;
@@ -23,10 +24,11 @@ export function FormCreator() {
   const createFormMutation = useMutation({
     mutationFn: createForm,
     onSuccess: (data) => {
-      alert(`Form created successfully! ID: ${data.formId}`);
+      queryClient.invalidateQueries({ queryKey: ["forms"] });
+      toast.success(`Form created successfully! ID: ${data.formId}`);
     },
     onError: (error) => {
-      alert(`Error creating form: ${error.message}`);
+      toast.error(`Error creating form: ${error.message}`);
     },
   });
 

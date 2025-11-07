@@ -5,6 +5,36 @@ import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
 
+export async function GET({ params }: { params: Promise<{ formId: string }> }) {
+	const { formId } = await params;
+	try {
+		const session = await getSessionFromRequest();
+		if (!session) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		const [form] = await (await db.select().from(forms).where(eq(forms.id, formId)))
+			.innerJoin(formSections, eq(formSections.formId, formId))
+			.innerJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
+			.limit(1);
+
+		// const form = await db.query.findFirst({
+		// 	where: eq(forms.id, formId),
+		// 	with:{
+		// 		sections: {
+		// 			whe
+		// 	}
+		// })
+		if (!form) {
+			return NextResponse.json({ error: "invalid form id" }, { status: 404 });
+		}
+		return NextResponse.json({ success: true, form });
+	} catch (error) {
+		console.error("Error fetching form:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+	}
+}
+
 export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ formId: string }> },
@@ -75,4 +105,20 @@ export async function POST(
 	}
 
 	return NextResponse.json({ message: "Form Questions updated" }, { status: 200 });
+}
+
+export async function DELETE({ params }: { params: Promise<{ formId: string }> }) {
+	const { formId } = await params;
+	const session = await getSessionFromRequest();
+	if (!session) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	try {
+		await db.delete(forms).where(eq(forms.id, formId));
+		return NextResponse.json({ message: "Form deleted successfully" }, { status: 200 });
+	} catch (error) {
+		console.error("Error deleting form:", error);
+		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+	}
 }

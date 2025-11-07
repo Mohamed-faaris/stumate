@@ -18,7 +18,7 @@
 		"rules": {
 			"correctness": {
 				"noUnusedImports": "error",
-				"noUnusedVariables": "info",
+				// "noUnusedVariables": "info",
 				"noUnusedFunctionParameters": "info",
 				"recommended": true
 			},

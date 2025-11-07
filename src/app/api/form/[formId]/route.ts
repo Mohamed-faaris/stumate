@@ -13,12 +13,11 @@ export async function GET({ params }: { params: Promise<{ formId: string }> }) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const [form] = await (await db.select().from(forms)
+		const [form] = await db.select().from(forms)
 			.innerJoin(formSections, eq(formSections.formId, formId))
 			.innerJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
-			.where(eq(forms.id, formId)))
+			.where(eq(forms.id, formId))
 			.limit(1)
-			;
 
 		// const form = await db.query.findFirst({
 		// 	where: eq(forms.id, formId),

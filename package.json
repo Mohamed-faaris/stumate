@@ -50,6 +50,7 @@
 		"@biomejs/biome": "1.9.4",
 		"@faker-js/faker": "^10.1.0",
 		"@tailwindcss/postcss": "^4.0.15",
+		"@tanstack/react-query-devtools": "^5.90.2",
 		"@types/node": "^20.14.10",
 		"@types/react": "19.2.2",
 		"@types/react-dom": "19.2.2",
@@ -69,6 +70,10 @@
 			"@types/react": "19.2.2",
 			"@types/react-dom": "19.2.2"
 		},
-		"onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "sharp"]
+		"onlyBuiltDependencies": [
+			"@biomejs/biome",
+			"esbuild",
+			"sharp"
+		]
 	}
 }

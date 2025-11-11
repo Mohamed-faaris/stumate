@@ -12,6 +12,7 @@ export async function GET(
 ): Promise<NextResponse<GetFormResponse | { error: string }>> {
 	const { formId } = await params;
 	try {
+		// TODO : add auth back
 		const session = await getSessionFromRequest();
 		if (!session) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

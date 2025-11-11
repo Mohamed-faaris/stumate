@@ -1,8 +1,12 @@
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import z from "zod";
+import { z } from "zod";
 import { env } from "~/env";
+import { getSessionFromRequest } from "~/server/auth";
+import { db } from "~/server/db";
 import { insertUser } from "~/server/db/queries";
+import { users } from "~/server/db/schema/user";
 import { PostBodySchema } from "~/types/user";
 
 export type UserPostResponse = ReturnType<typeof POST>;
@@ -54,4 +58,27 @@ export async function POST(request: NextRequest) {
 			{ status: 500 },
 		);
 	}
+}
+
+export async function GET() {
+	const session = await getSessionFromRequest();
+	if (!session) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	const user = await db.query.users.findFirst({
+		where: eq(users.id, session.user.id),
+		with: {
+			createdForms: true,
+			createdGroups: true,
+			groupsMemberships: true,
+			metadata: true,
+		},
+	});
+
+	if (!user) {
+		return NextResponse.json({ error: "User not found" }, { status: 404 });
+	}
+
+	return NextResponse.json({ success: true, user });
 }

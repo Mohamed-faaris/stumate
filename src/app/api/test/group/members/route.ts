@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import z from "zod";
+import { z } from "zod";
 import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { groups, groupsMembers } from "~/server/db/schema";
 
 const AddMemberSchema = z.object({
 	groupId: z.string().uuid(),
-	userId: z.string().uuid(),
+	userId: z.string().uuid().array().nonempty(),
 });
 
 const RemoveMemberSchema = z.object({
@@ -29,31 +29,53 @@ export async function POST(request: NextRequest) {
 
 		const { groupId, userId } = body.data;
 
-		// Check if member already exists
-		const existingMember = await db
-			.select()
-			.from(groupsMembers)
-			.where(and(eq(groupsMembers.groupId, groupId), eq(groupsMembers.userId, userId)))
-			.limit(1);
+		// TODO : refactor code to improve performance and readability
+		await db.transaction(async (tx) => {
+			// Get all currently existing members for this group
+			const existingMembers = await tx
+				.select()
+				.from(groupsMembers)
+				.where(eq(groupsMembers.groupId, groupId));
 
-		db.update(groups)
-			.set({ size: existingMember.length + 1 })
-			.where(eq(groups.id, groupId));
+			const existingUserIds = new Set(existingMembers.map((m) => m.userId));
 
-		if (existingMember.length > 0) {
+			// Filter out users that are already members
+			const newUserIds = userId.filter((id) => !existingUserIds.has(id));
+
+			if (newUserIds.length === 0) {
+				throw new Error("All users are already members of this group");
+			}
+
+			// Add all new members
+			await tx.insert(groupsMembers).values(
+				newUserIds.map((id) => ({
+					groupId,
+					userId: id,
+				}))
+			);
+
+			// Get updated member count and update group size
+			const memberCount = await tx
+				.select()
+				.from(groupsMembers)
+				.where(eq(groupsMembers.groupId, groupId));
+
+			await tx.update(groups)
+				.set({ size: memberCount.length })
+				.where(eq(groups.id, groupId));
+		});
+
+		return NextResponse.json({
+			success: true,
+			message: `${userId.length} member(s) added successfully`,
+		});
+	} catch (error) {
+		if (error instanceof Error && error.message === "All users are already members of this group") {
 			return NextResponse.json(
-				{ error: "User is already a member of this group" },
+				{ error: error.message },
 				{ status: 409 },
 			);
 		}
-
-		await db.insert(groupsMembers).values({
-			groupId,
-			userId,
-		});
-
-		return NextResponse.json({ success: true, message: "Member added successfully" });
-	} catch (error) {
 		console.error("Error adding member:", error);
 		return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
 	}
@@ -73,9 +95,23 @@ export async function DELETE(request: NextRequest) {
 
 		const { groupId, userId } = body.data;
 
-		await db
-			.delete(groupsMembers)
-			.where(and(eq(groupsMembers.groupId, groupId), eq(groupsMembers.userId, userId)));
+		// Use transaction to ensure atomicity
+		await db.transaction(async (tx) => {
+			// Remove the member
+			await tx
+				.delete(groupsMembers)
+				.where(and(eq(groupsMembers.groupId, groupId), eq(groupsMembers.userId, userId)));
+
+			// Get updated member count and update group size
+			const memberCount = await tx
+				.select()
+				.from(groupsMembers)
+				.where(eq(groupsMembers.groupId, groupId));
+
+			await tx.update(groups)
+				.set({ size: memberCount.length })
+				.where(eq(groups.id, groupId));
+		});
 
 		return NextResponse.json({ success: true, message: "Member removed successfully" });
 	} catch (error) {

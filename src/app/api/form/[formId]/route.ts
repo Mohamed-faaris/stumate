@@ -2,13 +2,14 @@ import { eq } from "drizzle-orm/sql";
 import { type NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
+import { getFormById } from "~/server/db/queries";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
-import { EditFormSchema } from "~/types/form";
+import { EditFormSchema, type GetFormResponse } from "~/types/form";
 
 export async function GET(
 	_request: NextRequest,
 	{ params }: { params: Promise<{ formId: string }> },
-) {
+): Promise<NextResponse<GetFormResponse | { error: string }>> {
 	const { formId } = await params;
 	try {
 		const session = await getSessionFromRequest();
@@ -127,16 +128,7 @@ export async function GET(
 		// };
 
 		//needs optimization for large forms
-		const form = await db.query.forms.findFirst({
-			where: eq(forms.id, formId),
-			with: {
-				formSections: {
-					with: {
-						formQuestions: true,
-					},
-				},
-			},
-		});
+		const form = await getFormById(formId);
 
 		if (!form) {
 			return NextResponse.json({ error: "Form not found" }, { status: 404 });

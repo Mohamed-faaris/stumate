@@ -1,4 +1,5 @@
 import z from "zod";
+import type { db } from "~/server/db";
 import { questionTypeValues } from "~/server/db/schema/form-question";
 
 export const FormMetaSchema = z.object({
@@ -34,3 +35,7 @@ export type Question = z.infer<typeof QuestionSchema>;
 export type Section = z.infer<typeof SectionSchema>;
 export type FormMeta = z.infer<typeof FormMetaSchema>;
 export type EditForm = z.infer<typeof EditFormSchema>;
+export type GetFormResponse = {
+	success: boolean;
+	form: Awaited<ReturnType<typeof db.query.forms.findFirst>>;
+};

@@ -32,7 +32,7 @@ export const formsRelations = relations(forms, ({ one, many }) => ({
 	creator: one(users, { fields: [forms.createdBy], references: [users.id] }),
 	formSections: many(formSections),
 	formAssignments: many(formAssignments),
-	formResponses: many(formResponsesLog),
+	formResponses: many(formResponses),
 }));
 
 // Form sections relations
@@ -59,10 +59,10 @@ export const formAssignmentsRelations = relations(formAssignments, ({ one }) => 
 }));
 
 // Form responses log relations
-export const formResponsesLogRelations = relations(formResponsesLog, ({ one }) => ({
-	form: one(forms, { fields: [formResponsesLog.formId], references: [forms.id] }),
+export const formResponsesRelations = relations(formResponses, ({ one }) => ({
+	form: one(forms, { fields: [formResponses.formId], references: [forms.id] }),
 	responder: one(users, {
-		fields: [formResponsesLog.responderId],
+		fields: [formResponses.responderId],
 		references: [users.id],
 	}),
 	response: one(formResponses),

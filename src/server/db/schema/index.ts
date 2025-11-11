@@ -25,7 +25,7 @@ export {
 	formSectionsRelations,
 	formQuestionsRelations,
 	formAssignmentsRelations,
-	formResponsesLogRelations,
+	formResponsesRelations,
 	groupsRelations,
 	groupsMembersRelations,
 	usersMetadataRelations,

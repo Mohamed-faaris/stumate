@@ -28,7 +28,6 @@ The database schema has been separated into different files organized by domain/
 ### `form-response.ts`
 
 - `formQuestions` - Individual questions in form sections
-- `formResponsesLog` - Log of form submissions
 - `formResponses` - Individual responses to questions
 
 ### `group.ts`

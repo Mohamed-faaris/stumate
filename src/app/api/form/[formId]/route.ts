@@ -4,6 +4,8 @@ import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
+import { sql } from "drizzle-orm";
+import type { R } from "node_modules/better-auth/dist/shared/better-auth.DNnBkMGu";
 
 export async function GET(
 	request: NextRequest,
@@ -15,23 +17,136 @@ export async function GET(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const [form] = await db.select().from(forms)
-			.leftJoin(formSections, eq(formSections.formId, formId))
-			//.innerJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
-			.where(eq(forms.id, formId))
-			.limit(1)
 
-		// const form = await db.query.findFirst({
+		//TODO: calculate cost for each and choose the most efficient
+		//simple select with joins
+		// const form = await db
+		// 	.select()
+		// 	.from(forms)
+		// 	.leftJoin(formSections, eq(formSections.formId, forms.id))
+		// 	.leftJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
+		// 	.where(eq(forms.id, formId));
+
+
+
+
+		//select with nested json aggregation using query API
+		// const form = await db.query.forms.findFirst({
 		// 	where: eq(forms.id, formId),
-		// 	with:{
-		// 		sections: {
-		// 			whe
-		// 	}
-		// })
+		// 	with: {
+		// 		formSections: {
+		// 			with: {
+		// 				formQuestions: true,
+		// 			},
+		// 		},
+		// 	},
+		// });
+
+		//same as above but using sql tagged template for more complex queries
+		// 	const form = await db
+		// 		.select({
+		// 			id: forms.id,
+		// 			title: forms.title,
+		// 			description: forms.description,
+		// 			sections: sql`
+		//   json_agg(
+		//     json_build_object(
+		//       'id', ${formSections.id},
+		//       'title', ${formSections.title},
+		//       'questions', (
+		//         SELECT json_agg(
+		//           json_build_object(
+		//             'id', ${formQuestions.id},
+		//             'text', ${formQuestions.questionText}
+		//           )
+		//         )
+		//         FROM ${formQuestions}
+		//         WHERE ${formQuestions.sectionId} = ${formSections.id}
+		//       )
+		//     )
+		//   ) FILTER (WHERE ${formSections.id} IS NOT NULL)
+		// `.as("sections"),
+		// 		})
+		// 		.from(forms)
+		// 		.leftJoin(formSections, eq(formSections.formId, forms.id))
+		// 		.where(eq(forms.id, formId))
+		// 		.groupBy(forms.id);
+
+		//same as above but with more fields
+		// 	const formResult = await db
+		// 		.select({
+		// 			id: forms.id,
+		// 			title: forms.title,
+		// 			description: forms.description,
+		// 			config: forms.config,
+		// 			metadata: forms.metadata,
+		// 			deadline: forms.deadline,
+		// 			createdBy: forms.createdBy,
+		// 			createdAt: forms.createdAt,
+		// 			updatedAt: forms.updatedAt,
+		// 			sections: sql`
+		//   json_agg(
+		//     json_build_object(
+		//       'id', ${formSections.id},
+		//       'title', ${formSections.title},
+		//       'description', ${formSections.description},
+		//       'config', ${formSections.config},
+		//       'order', ${formSections.order},
+		//       'questions', (
+		//         SELECT json_agg(
+		//           json_build_object(
+		//             'id', ${formQuestions.id},
+		//             'questionText', ${formQuestions.questionText},
+		//             'questionDescription', ${formQuestions.questionDescription},
+		//             'questionType', ${formQuestions.questionType},
+		//             'required', ${formQuestions.required},
+		//             'config', ${formQuestions.config},
+		//             'order', ${formQuestions.order}
+		//           )
+		//         )
+		//         FROM ${formQuestions}
+		//         WHERE ${formQuestions.sectionId} = ${formSections.id}
+		//       )
+		//     )
+		//   ) FILTER (WHERE ${formSections.id} IS NOT NULL)
+		// `.as("sections"),
+		// 		})
+		// 		.from(forms)
+		// 		.leftJoin(formSections, eq(formSections.formId, forms.id))
+		// 		.where(eq(forms.id, formId))
+		// 		.groupBy(forms.id);
+
+		// form.formSections.forEach((section) => {
+		// 	section.formQuestions.forEach((question) => {
+		// 		if (!questionMap[question.sectionId]) {
+		// 			questionMap[question.sectionId] = section;
+		// 			section.formQuestions = [];
+		// 		}
+		// 		questionMap[question.sectionId]!.formQuestions.push(question);
+		// 	});
+		// });
+
+		// const flattenedForm: typeof form = {
+		// 	...form,
+		// 	formSections1: Object.values(questionMap),
+		// };
+
+		//needs optimization for large forms
+		const form = await db.query.forms.findFirst({
+			where: eq(forms.id, formId),
+			with: {
+				formSections: {
+					with: {
+						formQuestions: true,
+					},
+				},
+			},
+		});
+
 		if (!form) {
-			console.log("Form not found for ID:", formId);
-			return NextResponse.json({ error: "invalid form id" }, { status: 404 });
+			return NextResponse.json({ error: "Form not found" }, { status: 404 });
 		}
+
 		return NextResponse.json({ success: true, form });
 	} catch (error) {
 		console.error("Error fetching form:", error);

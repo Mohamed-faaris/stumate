@@ -24,4 +24,13 @@ export {
 	usersRelations,
 	accountsRelations,
 	sessionsRelations,
+	formsRelations,
+	formSectionsRelations,
+	formQuestionsRelations,
+	formAssignmentsRelations,
+	formResponsesLogRelations,
+	formResponsesRelations,
+	groupsRelations,
+	groupsMembersRelations,
+	usersMetadataRelations,
 } from "./relations";

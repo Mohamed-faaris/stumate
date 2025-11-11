@@ -16,8 +16,8 @@ export async function GET(
 		}
 
 		const [form] = await db.select().from(forms)
-			.innerJoin(formSections, eq(formSections.formId, formId))
-			.innerJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
+			.leftJoin(formSections, eq(formSections.formId, formId))
+			//.innerJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
 			.where(eq(forms.id, formId))
 			.limit(1)
 
@@ -29,6 +29,7 @@ export async function GET(
 		// 	}
 		// })
 		if (!form) {
+			console.log("Form not found for ID:", formId);
 			return NextResponse.json({ error: "invalid form id" }, { status: 404 });
 		}
 		return NextResponse.json({ success: true, form });

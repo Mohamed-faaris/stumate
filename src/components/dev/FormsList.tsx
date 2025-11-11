@@ -5,6 +5,13 @@ import { useState } from "react";
 import { questionTypeValues } from "~/server/db/schema/form-question";
 import type { EditForm, Question, Section } from "~/types/form";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 
 interface Form {
   id: string;
@@ -63,6 +70,19 @@ export function FormsList() {
 
   const [editingFormId, setEditingFormId] = useState<string | null>(null);
   const [sections, setSections] = useState<Record<string, Section[]>>({});
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+
+  const fetchFormDataQuery = useQuery({
+    queryKey: ["form", selectedFormId],
+    queryFn: async () => {
+      if (!selectedFormId) return null;
+      const response = await fetch(`/api/form/${selectedFormId}`);
+      if (!response.ok) throw new Error("Failed to fetch form data");
+      return response.json();
+    },
+    enabled: !!selectedFormId && dialogOpen,
+  });
 
   const addSection = (formId: string) => {
     const newSection: Section = {
@@ -197,7 +217,10 @@ export function FormsList() {
                   <button
                     type="button"
                     className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-                    onClick={() => toast.info(JSON.stringify(form, null, 2))}
+                    onClick={() => {
+                      setSelectedFormId(form.id);
+                      setDialogOpen(true);
+                    }}
                   >
                     Get as JSON
                   </button>
@@ -407,6 +430,40 @@ export function FormsList() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setSelectedFormId(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Form Data (JSON)</DialogTitle>
+            <DialogDescription>
+              Complete form data fetched from the API
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {fetchFormDataQuery.isLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="text-gray-500">Loading form data...</div>
+              </div>
+            ) : fetchFormDataQuery.error ? (
+              <div className="text-red-600 p-4 bg-red-50 rounded border">
+                Error loading form data: {fetchFormDataQuery.error.message}
+              </div>
+            ) : fetchFormDataQuery.data ? (
+              <pre className="whitespace-pre-wrap text-sm bg-gray-100 p-4 rounded border overflow-x-auto">
+                {JSON.stringify(fetchFormDataQuery.data, null, 2)}
+              </pre>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

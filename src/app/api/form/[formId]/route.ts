@@ -4,19 +4,17 @@ import { getSessionFromRequest } from "~/server/auth";
 import { db } from "~/server/db";
 import { formQuestions, formSections, forms } from "~/server/db/schema";
 import { EditFormSchema } from "~/types/form";
-import { sql } from "drizzle-orm";
-import type { R } from "node_modules/better-auth/dist/shared/better-auth.DNnBkMGu";
 
 export async function GET(
-	request: NextRequest,
-	{ params }: { params: Promise<{ formId: string }> }) {
+	_request: NextRequest,
+	{ params }: { params: Promise<{ formId: string }> },
+) {
 	const { formId } = await params;
 	try {
 		const session = await getSessionFromRequest();
 		if (!session) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
-
 
 		//TODO: calculate cost for each and choose the most efficient
 		//simple select with joins
@@ -26,9 +24,6 @@ export async function GET(
 		// 	.leftJoin(formSections, eq(formSections.formId, forms.id))
 		// 	.leftJoin(formQuestions, eq(formQuestions.sectionId, formSections.id))
 		// 	.where(eq(forms.id, formId));
-
-
-
 
 		//select with nested json aggregation using query API
 		// const form = await db.query.forms.findFirst({
@@ -168,7 +163,8 @@ export async function POST(
 	if (!body.success) {
 		return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 	}
-	// biome-ignore lint/correctness/noUnusedVariables: used later
+
+	//TODO: remove unused variables
 	const { formMeta, groupsIds, sections } = body.data;
 
 	try {
@@ -227,8 +223,9 @@ export async function POST(
 }
 
 export async function DELETE(
-	request: NextRequest,
-	{ params }: { params: Promise<{ formId: string }> }) {
+	_request: NextRequest,
+	{ params }: { params: Promise<{ formId: string }> },
+) {
 	const { formId } = await params;
 	const session = await getSessionFromRequest();
 	if (!session) {

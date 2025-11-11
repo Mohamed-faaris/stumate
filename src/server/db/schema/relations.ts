@@ -1,8 +1,8 @@
 import { relations } from "drizzle-orm";
 import { accounts, sessions } from "./auth";
-import { forms, formSections, formAssignments } from "./form";
+import { formAssignments, formSections, forms } from "./form";
 import { formQuestions } from "./form-question";
-import { formResponsesLog, formResponses } from "./form-response";
+import { formResponses, formResponsesLog } from "./form-response";
 import { groups, groupsMembers } from "./group";
 import { users, usersMetadata } from "./user";
 
@@ -50,29 +50,23 @@ export const formQuestionsRelations = relations(formQuestions, ({ one }) => ({
 }));
 
 // Form assignments relations
-export const formAssignmentsRelations = relations(
-	formAssignments,
-	({ one }) => ({
-		form: one(forms, { fields: [formAssignments.formId], references: [forms.id] }),
-		group: one(groups, {
-			fields: [formAssignments.groupId],
-			references: [groups.id],
-		}),
-	})
-);
+export const formAssignmentsRelations = relations(formAssignments, ({ one }) => ({
+	form: one(forms, { fields: [formAssignments.formId], references: [forms.id] }),
+	group: one(groups, {
+		fields: [formAssignments.groupId],
+		references: [groups.id],
+	}),
+}));
 
 // Form responses log relations
-export const formResponsesLogRelations = relations(
-	formResponsesLog,
-	({ one, many }) => ({
-		form: one(forms, { fields: [formResponsesLog.formId], references: [forms.id] }),
-		responder: one(users, {
-			fields: [formResponsesLog.responderId],
-			references: [users.id],
-		}),
-		response: one(formResponses),
-	})
-);
+export const formResponsesLogRelations = relations(formResponsesLog, ({ one }) => ({
+	form: one(forms, { fields: [formResponsesLog.formId], references: [forms.id] }),
+	responder: one(users, {
+		fields: [formResponsesLog.responderId],
+		references: [users.id],
+	}),
+	response: one(formResponses),
+}));
 
 // Form responses relations
 export const formResponsesRelations = relations(formResponses, ({ one }) => ({

@@ -7,9 +7,7 @@ export {
 	questionTypeEnum,
 	type QuestionType,
 } from "./form-question";
-export {
-	formResponses
-} from "./form-response";
+export { formResponses } from "./form-response";
 export { groups, groupsMembers, groupRoles, type GroupRole } from "./group";
 export {
 	users,

@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { accounts, sessions } from "./auth";
 import { formAssignments, formSections, forms } from "./form";
 import { formQuestions } from "./form-question";
-import { formResponses, formResponsesLog } from "./form-response";
+import { formResponses } from "./form-response";
 import { groups, groupsMembers } from "./group";
 import { users, usersMetadata } from "./user";
 
@@ -13,7 +13,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
 	createdForms: many(forms),
 	createdGroups: many(groups),
 	groupsMemberships: many(groupsMembers),
-	formResponses: many(formResponsesLog),
+	formResponses: many(formResponses),
 	metadata: one(usersMetadata),
 }));
 
@@ -67,8 +67,6 @@ export const formResponsesLogRelations = relations(formResponsesLog, ({ one }) =
 	}),
 	response: one(formResponses),
 }));
-
-
 
 // Groups relations
 export const groupsRelations = relations(groups, ({ one, many }) => ({

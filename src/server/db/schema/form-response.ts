@@ -15,7 +15,8 @@ export const formResponses = createTable(
 		updatedAt: d.timestamp({ mode: "date", withTimezone: true }).defaultNow(),
 		responderId: d.uuid().references(() => users.id),
 	}),
-	(t) => [primaryKey({ columns: [t.formId, t.responderId] }), index("response_log_id_idx").on(t.formId)],
+	(t) => [
+		primaryKey({ columns: [t.formId, t.responderId] }),
+		index("response_log_id_idx").on(t.formId),
+	],
 );
-
-

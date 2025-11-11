@@ -68,13 +68,7 @@ export const formResponsesLogRelations = relations(formResponsesLog, ({ one }) =
 	response: one(formResponses),
 }));
 
-// Form responses relations
-export const formResponsesRelations = relations(formResponses, ({ one }) => ({
-	log: one(formResponsesLog, {
-		fields: [formResponses.responseLogId],
-		references: [formResponsesLog.id],
-	}),
-}));
+
 
 // Groups relations
 export const groupsRelations = relations(groups, ({ one, many }) => ({

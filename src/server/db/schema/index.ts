@@ -8,8 +8,7 @@ export {
 	type QuestionType,
 } from "./form-question";
 export {
-	formResponsesLog,
-	formResponses,
+	formResponses
 } from "./form-response";
 export { groups, groupsMembers, groupRoles, type GroupRole } from "./group";
 export {
@@ -29,7 +28,6 @@ export {
 	formQuestionsRelations,
 	formAssignmentsRelations,
 	formResponsesLogRelations,
-	formResponsesRelations,
 	groupsRelations,
 	groupsMembersRelations,
 	usersMetadataRelations,

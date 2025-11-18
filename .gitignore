@@ -47,3 +47,6 @@ yarn-error.log*
 .vercel
 .drizzle
 
+drizzle/0000_tiny_stingray.sql
+drizzle/meta/_journal.json
+drizzle/meta/0000_snapshot.json

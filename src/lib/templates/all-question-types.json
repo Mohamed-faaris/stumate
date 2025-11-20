@@ -1,0 +1,142 @@
+{
+  "id": "template-all-question-types",
+  "title": "All Question Types Template",
+  "description": "A template containing one section that demonstrates every question type supported by the system.",
+  "sections": [
+    {
+      "id": "sec-1",
+      "title": "All Questions Section",
+      "description": "This section contains one example of each question type.",
+      "order": 1,
+      "questions": [
+        {
+          "id": "q-short-1",
+          "questionText": "What is your name?",
+          "questionDescription": "Short text input example",
+          "questionType": "SHORT_TEXT",
+          "required": true,
+          "config": { "maxLength": 255, "minLength": 1 },
+          "order": 1
+        },
+        {
+          "id": "q-long-1",
+          "questionText": "Tell us about yourself",
+          "questionDescription": "Long text input example",
+          "questionType": "LONG_TEXT",
+          "required": false,
+          "config": { "maxLength": 2000, "minLength": 1 },
+          "order": 2
+        },
+        {
+          "id": "q-mc-1",
+          "questionText": "Choose your favorite fruits",
+          "questionDescription": "Multiple choice (allow multiple)",
+          "questionType": "MULTIPLE_CHOICE",
+          "required": false,
+          "config": {
+            "options": ["Apple", "Banana", "Cherry"],
+            "allowMultiple": true,
+            "maxSelected": 3,
+            "minSelected": 1
+          },
+          "order": 3
+        },
+        {
+          "id": "q-checkbox-1",
+          "questionText": "Select applicable hobbies",
+          "questionDescription": "Checkboxes example",
+          "questionType": "CHECKBOXES",
+          "required": false,
+          "config": {
+            "options": ["Reading", "Sports", "Coding"],
+            "maxSelected": 3,
+            "minSelected": 0
+          },
+          "order": 4
+        },
+        {
+          "id": "q-dropdown-1",
+          "questionText": "Pick your country",
+          "questionDescription": "Dropdown example",
+          "questionType": "DROPDOWN",
+          "required": true,
+          "config": { "options": ["USA", "Canada", "UK"] },
+          "order": 5
+        },
+        {
+          "id": "q-linear-1",
+          "questionText": "Rate your experience",
+          "questionDescription": "Linear scale example",
+          "questionType": "LINEAR_SCALE",
+          "required": false,
+          "config": {
+            "min": 1,
+            "max": 5,
+            "step": 1,
+            "minLabel": "Poor",
+            "maxLabel": "Excellent"
+          },
+          "order": 6
+        },
+        {
+          "id": "q-date-1",
+          "questionText": "Choose a date",
+          "questionDescription": "Date example",
+          "questionType": "DATE",
+          "required": false,
+          "config": { "earliestDate": null, "latestDate": null },
+          "order": 7
+        },
+        {
+          "id": "q-time-1",
+          "questionText": "Choose a time",
+          "questionDescription": "Time example",
+          "questionType": "TIME",
+          "required": false,
+          "config": { "earliestTime": null, "latestTime": null },
+          "order": 8
+        },
+        {
+          "id": "q-datetime-1",
+          "questionText": "Choose a date & time",
+          "questionDescription": "Date time example",
+          "questionType": "DATE_TIME",
+          "required": false,
+          "config": { "earliestDateTime": null, "latestDateTime": null },
+          "order": 9
+        },
+        {
+          "id": "q-url-1",
+          "questionText": "Provide your website",
+          "questionDescription": "URL example",
+          "questionType": "URL",
+          "required": false,
+          "config": { "mustContain": null, "mustNotContain": null },
+          "order": 10
+        },
+        {
+          "id": "q-content-1",
+          "questionText": "Section instructions / content block",
+          "questionDescription": "Content block example",
+          "questionType": "CONTENT_BLOCK",
+          "required": false,
+          "config": {},
+          "order": 11
+        },
+        {
+          "id": "q-radio-1",
+          "questionText": "Choose one preferred contact method",
+          "questionDescription": "Radio example",
+          "questionType": "RADIO",
+          "required": true,
+          "config": {
+            "options": ["Email", "Phone", "SMS"],
+            "maxSelected": 1,
+            "minSelected": 1
+          },
+          "order": 12
+        }
+      ]
+    }
+  ]
+}

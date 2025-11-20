@@ -38,7 +38,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6 p-8">
       <div className="flex items-center justify-between">
         <h1 className="font-bold text-3xl">Forms</h1>
-        <Button onClick={() => router.push("/admin-dashboard/create-form")}>
+        <Button onClick={() => router.push("/t/admin-dashboard/create-form")}>
           Create New Form
         </Button>
       </div>
@@ -68,16 +68,24 @@ export default function AdminDashboardPage() {
                   <Button
                     variant="outline"
                     onClick={() =>
-                      router.push(`admin-dashboard/edit/${form.id}`)
+                      router.push(`/t/admin-dashboard/edit/${form.id}`)
                     }
                   >
                     Edit
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => router.push(`/admin-dashboard/${form.id}`)}
+                    onClick={() => router.push(`/t/admin-dashboard/${form.id}`)}
                   >
                     View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/t/admin-dashboard/details/${form.id}`)
+                    }
+                  >
+                    Details
                   </Button>
                 </div>
               </div>

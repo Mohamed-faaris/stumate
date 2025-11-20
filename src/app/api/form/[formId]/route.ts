@@ -173,6 +173,10 @@ export async function POST(
 					updatedAt: new Date(),
 				})
 				.where(eq(forms.id, formId));
+
+			// Delete existing sections and their questions
+			await tx.delete(formSections).where(eq(formSections.formId, formId));
+
 			if (sections && sections.length > 0) {
 				const sectionsIds = await tx
 					.insert(formSections)

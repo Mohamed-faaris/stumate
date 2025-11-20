@@ -9,10 +9,24 @@ import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Checkbox } from "~/components/ui/checkbox";
 
 import type { EditForm, FormMeta, Question, Section } from "~/types/form";
 import { type questionTypeValues } from "~/server/db/schema/form-question";
 import type { GetFormResponse } from "~/types/form";
+
+interface Group {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 const fetchForm = async (formId: string): Promise<GetFormResponse["form"]> => {
   const response = await fetch(`/api/form/${formId}`);
@@ -20,6 +34,20 @@ const fetchForm = async (formId: string): Promise<GetFormResponse["form"]> => {
   const data = await response.json();
   // The API returns { success: true, form: ... }
   return data.form || data;
+};
+
+const fetchGroups = async (): Promise<Group[]> => {
+  const response = await fetch("/api/test/group");
+  if (!response.ok) throw new Error("Failed to fetch groups");
+  const data = await response.json();
+  return data.groups || [];
+};
+
+const fetchFormAssignments = async (formId: string): Promise<string[]> => {
+  const response = await fetch(`/api/form/${formId}/assignments-temp`);
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data.groupIds || [];
 };
 
 const updateForm = async (
@@ -35,6 +63,16 @@ const updateForm = async (
   return response.json();
 };
 
+const assignFormToGroups = async (formId: string, groupIds: string[]) => {
+  const response = await fetch("/api/form/assignment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ formId, groupIds }),
+  });
+  if (!response.ok) throw new Error("Failed to assign form to groups");
+  return response.json();
+};
+
 export default function EditFormPage() {
   const params = useParams();
   const router = useRouter();
@@ -47,6 +85,10 @@ export default function EditFormPage() {
   });
 
   const [sections, setSections] = useState<Section[]>([]);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const {
     data: form,
@@ -55,6 +97,16 @@ export default function EditFormPage() {
   } = useQuery({
     queryKey: ["form", formId],
     queryFn: () => fetchForm(formId),
+  });
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ["groups"],
+    queryFn: fetchGroups,
+  });
+
+  const { data: existingAssignments = [] } = useQuery({
+    queryKey: ["formAssignments", formId],
+    queryFn: () => fetchFormAssignments(formId),
   });
 
   const updateMutation = useMutation({
@@ -70,6 +122,19 @@ export default function EditFormPage() {
     },
   });
 
+  const assignMutation = useMutation({
+    mutationFn: (groupIds: string[]) => assignFormToGroups(formId, groupIds),
+    onSuccess: () => {
+      toast.success("Form assigned to groups successfully!");
+      queryClient.invalidateQueries({ queryKey: ["formAssignments", formId] });
+      setIsAssignmentModalOpen(false);
+      setSelectedGroupIds(new Set());
+    },
+    onError: (error) => {
+      toast.error(`Error: ${error.message}`);
+    },
+  });
+
   // Sync form data when the form loads
   useEffect(() => {
     if (form && sections.length === 0) {
@@ -78,19 +143,28 @@ export default function EditFormPage() {
         description: form.description || "",
       });
 
-      const convertedSections: Section[] = (form.formSections || []).map((section) => ({
-        title: section.title,
-        description: section.description || "",
-        questions:
-          section.formQuestions?.map((q) => ({
-            questionText: q.title,
-            type: q.type as (typeof questionTypeValues)[number],
-            required: false,
-          })) || [],
-      }));
+      const convertedSections: Section[] = (form.formSections || []).map(
+        (section) => ({
+          title: section.title,
+          description: section.description || "",
+          questions:
+            section.formQuestions?.map((q) => ({
+              questionText: q.questionText,
+              type: q.questionType as (typeof questionTypeValues)[number],
+              required: q.required || false,
+            })) || [],
+        })
+      );
       setSections(convertedSections);
     }
   }, [form, sections.length]);
+
+  // Populate selected groups when modal opens or assignments load
+  useEffect(() => {
+    if (isAssignmentModalOpen && existingAssignments.length > 0) {
+      setSelectedGroupIds(new Set(existingAssignments));
+    }
+  }, [isAssignmentModalOpen, existingAssignments]);
 
   const addSection = () => {
     const newSection: Section = {
@@ -218,6 +292,24 @@ export default function EditFormPage() {
                 }))
               }
             />
+          </div>
+
+          <div className="rounded border border-gray-200 bg-gray-50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold">Assign to Groups</h3>
+                <p className="text-gray-600 text-sm">
+                  {existingAssignments.length} group(s) assigned
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={() => setIsAssignmentModalOpen(true)}
+                variant="outline"
+              >
+                Manage Assignments
+              </Button>
+            </div>
           </div>
 
           <div>
@@ -380,6 +472,77 @@ export default function EditFormPage() {
           </div>
         </form>
       </Card>
+
+      <Dialog
+        open={isAssignmentModalOpen}
+        onOpenChange={setIsAssignmentModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Form to Groups</DialogTitle>
+            <DialogDescription>
+              Select groups to assign this form to. Selected groups will be able
+              to submit responses.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-96 space-y-3 overflow-y-auto py-4">
+            {groups.length === 0 ? (
+              <p className="text-gray-600 text-sm">No groups available</p>
+            ) : (
+              groups.map((group) => (
+                <div key={group.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`group-${group.id}`}
+                    checked={selectedGroupIds.has(group.id)}
+                    onCheckedChange={(checked) => {
+                      const newSet = new Set(selectedGroupIds);
+                      if (checked) {
+                        newSet.add(group.id);
+                      } else {
+                        newSet.delete(group.id);
+                      }
+                      setSelectedGroupIds(newSet);
+                    }}
+                  />
+                  <label
+                    htmlFor={`group-${group.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <p className="font-medium text-sm">{group.name}</p>
+                    {group.description && (
+                      <p className="text-gray-600 text-xs">
+                        {group.description}
+                      </p>
+                    )}
+                  </label>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              onClick={() => {
+                if (selectedGroupIds.size === 0) {
+                  toast.error("Please select at least one group");
+                  return;
+                }
+                assignMutation.mutate(Array.from(selectedGroupIds));
+              }}
+              disabled={assignMutation.isPending}
+            >
+              {assignMutation.isPending ? "Assigning..." : "Assign Form"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsAssignmentModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
